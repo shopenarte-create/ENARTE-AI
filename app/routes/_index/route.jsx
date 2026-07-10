@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BUDGET_OPTIONS } from "../../services/budget.js";
 
 export default function App() {
   const [image, setImage] = useState(null);
@@ -6,6 +7,8 @@ export default function App() {
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState("");
+  const [budget, setBudget] = useState("");
+  const [selectedBudgetLabel, setSelectedBudgetLabel] = useState("");
 
   const handleUpload = () => {
     document.getElementById("roomImage").click();
@@ -19,10 +22,14 @@ export default function App() {
 
     setLoading(true);
     setResult("");
+    setSelectedBudgetLabel("");
 
     try {
       const formData = new FormData();
       formData.append("image", imageFile);
+      if (budget) {
+        formData.append("budget", budget);
+      }
 
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -50,6 +57,9 @@ console.log("RESULT:", data.result);
 
       if (data.success) {
         setResult(data.result);
+        if (data.budgetExplicit && data.budgetRange?.labelAr) {
+          setSelectedBudgetLabel(data.budgetRange.labelAr);
+        }
       } else {
         alert(data.error);
       }
@@ -76,6 +86,42 @@ console.log("RESULT:", data.result);
       <p>
         ارفع صورة الغرفة وسنقترح عليك أفضل الثريات مع تركيبها على الصورة.
       </p>
+
+      <div
+        style={{
+          marginTop: "20px",
+          marginBottom: "10px",
+          direction: "rtl",
+          textAlign: "right",
+        }}
+      >
+        <label
+          htmlFor="budgetSelect"
+          style={{ display: "block", marginBottom: "8px", fontWeight: "bold" }}
+        >
+          الميزانية (اختياري)
+        </label>
+        <select
+          id="budgetSelect"
+          value={budget}
+          onChange={(e) => setBudget(e.target.value)}
+          style={{
+            width: "100%",
+            maxWidth: "360px",
+            padding: "12px",
+            fontSize: "16px",
+            borderRadius: "8px",
+            border: "1px solid #d1d5db",
+          }}
+        >
+          <option value="">— بدون اختيار —</option>
+          {BUDGET_OPTIONS.map((option) => (
+            <option key={option.id} value={option.id}>
+              {option.labelAr}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <input
         id="roomImage"
@@ -159,9 +205,24 @@ console.log("RESULT:", data.result);
             borderRadius: "10px",
             background: "#f3f4f6",
             whiteSpace: "pre-wrap",
+            direction: "rtl",
+            textAlign: "right",
           }}
         >
           {result}
+          {selectedBudgetLabel && (
+            <p
+              style={{
+                marginTop: "16px",
+                marginBottom: 0,
+                paddingTop: "12px",
+                borderTop: "1px solid #d1d5db",
+                fontWeight: "bold",
+              }}
+            >
+              الميزانية المختارة: {selectedBudgetLabel}
+            </p>
+          )}
         </div>
       )}
     </div>

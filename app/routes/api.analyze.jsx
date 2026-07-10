@@ -1,12 +1,39 @@
 import { authenticate } from "../shopify.server";
 
 import OpenAI from "openai";
+import {
+  getBudgetPromptContext,
+  getBudgetRange,
+  resolveBudgetInput,
+  wasBudgetExplicitlySelected,
+} from "../services/budget.js";
 
 console.log("API ANALYZE CALLED");
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const BASE_ANALYSIS_PROMPT = `
+أنت خبير تصميم داخلي وإنارة لدى ENARTE.
+
+حلل صورة الغرفة وأجب بالعربية فقط.
+
+اذكر:
+
+1- نوع الغرفة
+2- مساحة الغرفة التقريبية
+3- ارتفاع السقف التقريبي
+4- نمط التصميم
+5- الألوان المسيطرة
+6- شكل الثريا المناسب
+7- القطر المناسب بالسنتيمتر
+8- اللون المناسب
+9- حرارة الإضاءة المناسبة
+10- سبب اختيارك
+
+اجعل الإجابة مرتبة وواضحة.
+`.trim();
 
 export async function action({ request }) {
   try {
@@ -17,6 +44,29 @@ const formData = await request.formData();
 console.log("2");
 
 const image = formData.get("image");
+const budgetResolved = resolveBudgetInput(formData.get("budget"));
+
+if (!budgetResolved.ok) {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: budgetResolved.error,
+    }),
+    {
+      status: 400,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+}
+
+const budgetRange = getBudgetRange(budgetResolved.budgetId);
+const budgetExplicit = wasBudgetExplicitlySelected(formData.get("budget"));
+const budgetPromptContext = getBudgetPromptContext(budgetResolved.budgetId);
+const analysisPrompt = budgetPromptContext
+  ? `${BASE_ANALYSIS_PROMPT}\n\n${budgetPromptContext}`
+  : BASE_ANALYSIS_PROMPT;
 
 console.log("3");
 
@@ -60,26 +110,7 @@ console.log("7");
           content: [
             {
               type: "input_text",
-              text: `
-أنت خبير تصميم داخلي وإنارة لدى ENARTE.
-
-حلل صورة الغرفة وأجب بالعربية فقط.
-
-اذكر:
-
-1- نوع الغرفة
-2- مساحة الغرفة التقريبية
-3- ارتفاع السقف التقريبي
-4- نمط التصميم
-5- الألوان المسيطرة
-6- شكل الثريا المناسب
-7- القطر المناسب بالسنتيمتر
-8- اللون المناسب
-9- حرارة الإضاءة المناسبة
-10- سبب اختيارك
-
-اجعل الإجابة مرتبة وواضحة.
-              `,
+              text: analysisPrompt,
             },
             {
               type: "input_image",
@@ -94,6 +125,9 @@ console.log("8");
       JSON.stringify({
         success: true,
         result: response.output_text,
+        budget: budgetRange.id,
+        budgetRange,
+        budgetExplicit,
       }),
       {
         headers: {
