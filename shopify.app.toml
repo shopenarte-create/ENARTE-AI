@@ -3,7 +3,7 @@
 client_id = "fcbe2a40342d41df221ad481f548d23b"
 name = "ENARTE-AI"
 handle = "enarte-ai"
-application_url = "https://lemon-clone-tension-superintendent.trycloudflare.com"
+application_url = "https://enarte-ai-production.up.railway.app"
 embedded = true
 
 [build]
@@ -28,13 +28,13 @@ use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [
-  "https://lemon-clone-tension-superintendent.trycloudflare.com/auth/callback",
-  "https://lemon-clone-tension-superintendent.trycloudflare.com/auth/shopify/callback",
-  "https://lemon-clone-tension-superintendent.trycloudflare.com/api/auth/callback"
+  "https://enarte-ai-production.up.railway.app/auth/callback",
+  "https://enarte-ai-production.up.railway.app/auth/shopify/callback",
+  "https://enarte-ai-production.up.railway.app/api/auth/callback"
 ]
 
 [app_proxy]
-url = "https://lemon-clone-tension-superintendent.trycloudflare.com"
+url = "https://enarte-ai-production.up.railway.app"
 subpath = "enarte-ai"
 prefix = "apps"
 
