@@ -12,6 +12,12 @@ COPY extensions ./extensions
 RUN npm ci
 
 COPY . .
+
+# Prisma config requires DATABASE_URL at generate/build time.
+# Runtime URL comes from Railway Postgres; this is only a build placeholder.
+ARG DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN npx prisma generate && npm run build \
   && npm prune --omit=dev
 
