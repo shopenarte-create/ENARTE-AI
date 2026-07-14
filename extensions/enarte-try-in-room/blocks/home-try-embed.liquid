@@ -1,0 +1,54 @@
+{% comment %}
+  ENARTE AI Assistant homepage embed — opens chat immediately.
+{% endcomment %}
+
+{% if request.page_type == 'index' or template.name == 'index' %}
+  <div
+    id="enarte-home-try-embed"
+    class="enarte-try-wrap enarte-try-home enarte-try-embed"
+    data-enarte-try-root
+    data-enarte-entry="home"
+    data-assistant-action="talk_to_assistant"
+    data-app-url="{{ block.settings.app_base_url | strip | escape }}"
+    data-shop="{{ shop.permanent_domain | escape }}"
+  >
+    <button
+      type="button"
+      class="enarte-try-button"
+      data-enarte-try-button
+      data-label="{{ block.settings.button_label | escape }}"
+    >
+      {{ block.settings.button_label }}
+    </button>
+    <p class="enarte-try-hint">{{ block.settings.hint_text }}</p>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "ENARTE AI Assistant Embed",
+  "target": "body",
+  "javascript": "enarte-boot.js",
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "تحدث مع ENARTE AI"
+    },
+    {
+      "type": "text",
+      "id": "hint_text",
+      "label": "Hint text",
+      "default": "افتح المساعد — صف احتياجك أو اختر إجراءً ذكياً"
+    },
+    {
+      "type": "text",
+      "id": "app_base_url",
+      "label": "ENARTE app base URL",
+      "info": "Storefront uses same-origin /apps/enarte-ai automatically. Override only for non-Shopify dev hosts.",
+      "default": "https://lane-gbp-specifically-granny.trycloudflare.com"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,402 @@
+{% comment %}
+  ENARTE — التصفية والخصومات
+  Horizontal swipe carousel. Prefers discounted products; falls back to
+  collection / catalog so the strip stays useful when compare-at isn't set yet.
+{% endcomment %}
+
+{% liquid
+  assign sale_collection = section.settings.collection
+  assign max_products = section.settings.max_products | default: 10
+  assign only_discounted = section.settings.only_discounted
+  assign count = 0
+  assign cta_url = section.settings.button_link
+  if sale_collection != blank
+    assign cta_url = sale_collection.url
+  endif
+
+  if sale_collection != blank
+    assign source_products = sale_collection.products
+  else
+    assign source_products = collections.all.products
+  endif
+%}
+
+<section class="enarte-sale" id="enarte-sale-clearance" aria-label="{{ section.settings.heading }}">
+  <div class="enarte-sale__inner">
+    <div class="enarte-sale__head page-width">
+      <div class="enarte-sale__head-text">
+        {% if section.settings.heading != blank %}
+          <h2 class="enarte-sale__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+        {% if section.settings.subheading != blank %}
+          <p class="enarte-sale__sub">{{ section.settings.subheading }}</p>
+        {% endif %}
+      </div>
+      {% if section.settings.button_label != blank and cta_url != blank %}
+        <a class="enarte-sale__cta" href="{{ cta_url }}">{{ section.settings.button_label }}</a>
+      {% endif %}
+    </div>
+
+    {% capture sale_slides %}
+      {% for product in source_products %}
+        {% if count >= max_products %}{% break %}{% endif %}
+        {% assign variant = product.selected_or_first_available_variant %}
+        {% assign is_sale = false %}
+        {% if variant.compare_at_price > variant.price or product.compare_at_price > product.price %}
+          {% assign is_sale = true %}
+        {% endif %}
+        {% if is_sale %}
+          {% assign count = count | plus: 1 %}
+          <div class="enarte-sale__slide">
+            {% render 'enarte-sale-card', product: product, variant: variant %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endcapture %}
+
+    {% if count == 0 and only_discounted == false %}
+      {% assign count = 0 %}
+      {% capture sale_slides %}
+        {% for product in source_products %}
+          {% if count >= max_products %}{% break %}{% endif %}
+          {% unless product.available %}{% continue %}{% endunless %}
+          {% assign variant = product.selected_or_first_available_variant %}
+          {% assign count = count | plus: 1 %}
+          <div class="enarte-sale__slide">
+            {% render 'enarte-sale-card', product: product, variant: variant %}
+          </div>
+        {% endfor %}
+      {% endcapture %}
+    {% endif %}
+
+    <div class="enarte-sale__track-wrap">
+      <div class="enarte-sale__track" data-enarte-sale-track tabindex="0">
+        {{ sale_slides }}
+      </div>
+    </div>
+
+    {% if count == 0 %}
+      <p class="enarte-sale__empty page-width">
+        {{ section.settings.empty_text | default: 'لا توجد منتجات مخفّضة حالياً — ترقّب عروض التصفية قريباً.' }}
+      </p>
+    {% endif %}
+  </div>
+</section>
+
+{% stylesheet %}
+  .enarte-sale {
+    padding: clamp(2rem, 4vw, 3rem) 0;
+    background: transparent;
+  }
+
+  .enarte-sale__inner {
+    max-width: 100%;
+  }
+
+  .enarte-sale__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    max-width: 76rem;
+  }
+
+  .enarte-sale__heading {
+    margin: 0;
+    font-family: var(--font-enarte-display, "Cormorant Garamond", Georgia, serif);
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--enarte-charcoal, #1c1914);
+    line-height: 1.2;
+  }
+
+  .enarte-sale__sub {
+    margin: 0.35rem 0 0;
+    max-width: 28rem;
+    color: var(--enarte-muted, #6b6560);
+    line-height: 1.5;
+    font-size: 0.9rem;
+  }
+
+  .enarte-sale__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--enarte-gold-deep, #9a7b3c) !important;
+    text-decoration: none !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .enarte-sale__cta:hover {
+    color: var(--enarte-charcoal, #1c1914) !important;
+    text-decoration: underline !important;
+  }
+
+  .enarte-sale__track-wrap {
+    max-width: 76rem;
+    margin-inline: auto;
+  }
+
+  .enarte-sale__track {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    padding: 0.15rem 1rem 0.85rem;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .enarte-sale__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .enarte-sale__slide {
+    flex: 0 0 min(44vw, 11.5rem);
+    width: min(44vw, 11.5rem);
+    max-width: 11.5rem;
+    scroll-snap-align: start;
+    min-width: 0;
+  }
+
+  .enarte-sale-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--enarte-white, #fffcf8);
+    border-radius: var(--enarte-radius-sm, 12px);
+    overflow: hidden;
+    border: 1px solid var(--enarte-line, rgba(28, 25, 20, 0.08));
+    box-shadow: 0 8px 24px rgba(28, 25, 20, 0.04);
+    text-decoration: none !important;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .enarte-sale-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--enarte-shadow-hover, 0 18px 48px rgba(28, 25, 20, 0.12));
+  }
+
+  .enarte-sale-card__badge {
+    position: absolute;
+    top: 0.55rem;
+    inset-inline-start: 0.55rem;
+    z-index: 2;
+    padding: 0.22rem 0.5rem;
+    border-radius: 999px;
+    background: var(--enarte-gold-deep, #9a7b3c);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+  }
+
+  .enarte-sale-card__media {
+    aspect-ratio: 1 / 1;
+    background: var(--enarte-beige, #efe8dc);
+    overflow: hidden;
+  }
+
+  .enarte-sale-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .enarte-sale-card__body {
+    padding: 0.55rem 0.55rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+    flex: 1;
+  }
+
+  .enarte-sale-card__title {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--enarte-charcoal, #1c1914);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .enarte-sale-card__rating {
+    display: flex;
+    align-items: center;
+    gap: 0.28rem;
+    color: var(--enarte-gold, #c4a35a);
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+
+  .enarte-sale-card__stars {
+    display: inline-flex;
+    gap: 1px;
+  }
+
+  .enarte-sale-card__stars svg {
+    width: 0.72rem;
+    height: 0.72rem;
+    fill: currentColor;
+  }
+
+  .enarte-sale-card__count {
+    color: var(--enarte-muted, #6b6560);
+    font-size: 0.68rem;
+  }
+
+  .enarte-sale-card__prices {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem;
+    margin-top: auto;
+  }
+
+  .enarte-sale-card__price {
+    margin: 0;
+    font-weight: 700;
+    color: var(--enarte-charcoal, #1c1914);
+    font-size: 0.84rem;
+  }
+
+  .enarte-sale-card__compare {
+    margin: 0;
+    color: rgba(28, 25, 20, 0.42);
+    text-decoration: line-through;
+    font-size: 0.74rem;
+  }
+
+  .enarte-sale__empty {
+    margin: 0.25rem auto 0;
+    max-width: 76rem;
+    text-align: center;
+    color: var(--enarte-muted, #6b6560);
+    font-size: 0.92rem;
+  }
+
+  @media (min-width: 750px) {
+    .enarte-sale__track {
+      gap: 1rem;
+      scroll-padding-inline: 1.5rem;
+      padding-inline: 1.5rem;
+      padding-bottom: 1rem;
+    }
+
+    .enarte-sale__slide {
+      flex-basis: min(28vw, 14.5rem);
+      width: min(28vw, 14.5rem);
+      max-width: 14.5rem;
+    }
+
+    .enarte-sale-card__title {
+      font-size: 0.9rem;
+    }
+
+    .enarte-sale-card__body {
+      padding: 0.7rem 0.7rem 0.85rem;
+    }
+  }
+
+  @media (min-width: 990px) {
+    .enarte-sale__head {
+      margin-bottom: 1.25rem;
+    }
+
+    .enarte-sale__track {
+      scroll-padding-inline: 0;
+      padding-inline: 0;
+    }
+
+    .enarte-sale__slide {
+      flex-basis: calc((100% - 3rem) / 4.35);
+      width: calc((100% - 3rem) / 4.35);
+      max-width: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "التصفية والخصومات",
+  "tag": "section",
+  "class": "section-enarte-sale",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "التصفية والخصومات"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "عروض محدودة على قطع مختارة — اسحب للاطلاع على المزيد."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Sale / clearance collection",
+      "info": "اختَر مجموعة التصفية. إن تُركت فارغة نأخذ من كل المتجر."
+    },
+    {
+      "type": "checkbox",
+      "id": "only_discounted",
+      "label": "Show only products with compare-at price",
+      "default": false,
+      "info": "إذا لم توجد أسعار مقارنة، يُعرض منتجات المجموعة كبديل."
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Max products",
+      "min": 4,
+      "max": 20,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "عرض الكل"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link (if no collection)"
+    },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Empty state text",
+      "default": "لا توجد منتجات مخفّضة حالياً — ترقّب عروض التصفية قريباً."
+    }
+  ],
+  "presets": [
+    {
+      "name": "التصفية والخصومات"
+    }
+  ]
+}
+{% endschema %}

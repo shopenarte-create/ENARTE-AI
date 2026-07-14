@@ -1,0 +1,59 @@
+{% comment %}
+  Hidden homepage root for scripts + assistant CTA.
+  Feature cards drive distinct flows via enarte-try.js:
+  - room-try → /try until placement
+  - image-search → Shopify catalog match (no AI)
+  - assistant → chat
+{% endcomment %}
+
+  <div
+    id="enarte-home-try"
+    class="enarte-try-wrap enarte-try-home enarte-try-wrap--hidden"
+    data-enarte-try-root
+    data-enarte-entry="home"
+    data-enarte-flow="assistant"
+    data-assistant-action="talk_to_assistant"
+    data-app-url="{{ block.settings.app_base_url | strip | escape }}"
+    data-shop="{{ shop.permanent_domain | escape }}"
+    aria-hidden="true"
+  >
+  <button
+    type="button"
+    class="enarte-try-button"
+    data-enarte-try-button
+    data-label="{{ block.settings.button_label | escape }}"
+  >
+    {{ block.settings.button_label }}
+  </button>
+  <p class="enarte-try-hint">{{ block.settings.hint_text }}</p>
+</div>
+
+{% schema %}
+{
+  "name": "ENARTE AI Assistant",
+  "target": "section",
+  "javascript": "enarte-boot.js",
+  "templates": ["index"],
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "تحدث مع ENARTE AI"
+    },
+    {
+      "type": "text",
+      "id": "hint_text",
+      "label": "Hint text",
+      "default": "افتح المساعد — صف احتياجك أو اختر إجراءً ذكياً"
+    },
+    {
+      "type": "text",
+      "id": "app_base_url",
+      "label": "ENARTE app base URL",
+      "info": "Storefront uses same-origin /apps/enarte-ai automatically. Override only for non-Shopify dev hosts.",
+      "default": "https://saints-between-manufacturers-venice.trycloudflare.com"
+    }
+  ]
+}
+{% endschema %}

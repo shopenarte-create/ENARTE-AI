@@ -1,0 +1,407 @@
+.enarte-try-wrap {
+  margin: 12px 0 16px;
+  direction: rtl;
+  text-align: right;
+  position: static !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  content-visibility: auto;
+  contain: layout style;
+}
+
+.enarte-try-embed {
+  position: static !important;
+  z-index: 1;
+  max-width: 420px;
+  margin: 16px auto;
+  padding: 0 16px;
+}
+
+/* In-flow placement above Buy it now — never fixed/sticky */
+.enarte-try-wrap--at-buy {
+  position: static !important;
+  z-index: auto;
+  width: 100%;
+  max-width: none;
+  margin: 10px 0 8px;
+  padding: 0;
+  inset: auto !important;
+}
+
+.enarte-try-wrap--hidden {
+  display: none !important;
+}
+
+.enarte-try-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #c4a35a 0%, #9a7b3c 100%);
+  color: #1c1914;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  /* Lighter paint cost than multi-layer shadow */
+  box-shadow: 0 4px 14px rgba(154, 123, 60, 0.2);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+  will-change: transform;
+}
+
+.enarte-try-button:active {
+  transform: scale(0.98);
+}
+
+.enarte-try-wrap--at-buy .enarte-try-button {
+  max-width: none;
+}
+
+.enarte-try-button:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.enarte-try-hint {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.enarte-try-wrap--at-buy .enarte-try-hint {
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+/* Visually hidden but still activatable on iOS/Android.
+   Avoid pointer-events:none — Android Chrome often ignores programmatic .click(). */
+.enarte-try-file-input {
+  position: fixed !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0.01 !important;
+  z-index: -1 !important;
+}
+
+/* Native label overlay — most reliable Android gallery path */
+.enarte-try-chooser-file {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.enarte-try-chooser-file input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+  z-index: 2;
+}
+
+/* Mobile bottom sheet — GPU transform (no display toggle jank) */
+.enarte-try-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: rgba(18, 22, 28, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.enarte-try-sheet-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.enarte-try-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99999;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-radius: 18px 18px 0 0;
+  background: #f7f8fa;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.14);
+  direction: rtl;
+  transform: translate3d(0, 110%, 0);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.22s;
+  will-change: transform;
+  display: grid;
+  gap: 8px;
+}
+
+.enarte-try-sheet.is-open {
+  transform: translate3d(0, 0, 0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.enarte-try-sheet-handle {
+  width: 42px;
+  height: 4px;
+  margin: 2px auto 8px;
+  border-radius: 999px;
+  background: #c5ced9;
+}
+
+.enarte-try-sheet-title {
+  margin: 0 4px 4px;
+  text-align: center;
+  color: #3d4654;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.enarte-try-sheet-tip {
+  margin: 0 4px 12px;
+  text-align: center;
+  color: #5b6573;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.enarte-try-chooser-option,
+.enarte-try-chooser-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.enarte-try-chooser-option {
+  border: none;
+  background: linear-gradient(135deg, #c4a35a 0%, #9a7b3c 100%);
+  color: #1c1914;
+}
+
+.enarte-try-chooser-cancel {
+  border: 1px solid #c5ced9;
+  background: #fff;
+  color: #3d4654;
+  font-weight: 600;
+}
+
+/* Never render Try Now inside theme sticky cart bar */
+.sticky-add-to-cart .enarte-try-wrap,
+.sticky-add-to-cart__bar .enarte-try-wrap {
+  display: none !important;
+}
+
+/* Live camera overlay */
+.enarte-try-camera {
+  position: fixed;
+  inset: 0;
+  z-index: 100001;
+  background: #0b0d10;
+  display: flex;
+  flex-direction: column;
+  direction: rtl;
+}
+
+.enarte-try-camera-frame {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.enarte-try-camera-video {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #111;
+}
+
+.enarte-try-camera-hint {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+
+.enarte-try-camera-actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px calc(22px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
+}
+
+.enarte-try-camera-close,
+.enarte-try-camera-flip {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.enarte-try-camera-close {
+  justify-self: start;
+}
+
+.enarte-try-camera-flip {
+  justify-self: end;
+}
+
+.enarte-try-camera-shutter {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  background: linear-gradient(135deg, #c4a35a 0%, #9a7b3c 100%);
+  color: #1c1914;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  touch-action: manipulation;
+}
+
+.enarte-try-camera-shutter:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.enarte-try-camera-blocked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  color: #fff;
+}
+
+.enarte-try-camera-blocked-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.enarte-try-camera-blocked-msg {
+  margin: 0;
+  max-width: 28rem;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.enarte-try-camera-blocked-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(100%, 22rem);
+  margin-top: 8px;
+}
+
+/* Homepage recommend CTA — prominent in-page block (section is first on index). */
+.enarte-try-wrap--home,
+.enarte-try-home {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  width: min(100%, 28rem);
+  max-width: 28rem;
+  margin: 1rem auto !important;
+  z-index: 2 !important;
+  text-align: center;
+  padding: 0 12px;
+}
+
+.enarte-try-wrap--home .enarte-try-button,
+.enarte-try-home .enarte-try-button {
+  max-width: none;
+  box-shadow: 0 8px 28px rgba(28, 25, 20, 0.28);
+  font-size: 17px;
+  padding: 16px 18px;
+}
+
+.enarte-try-wrap--home .enarte-try-hint,
+.enarte-try-home .enarte-try-hint {
+  color: #4b5563;
+  background: transparent;
+  text-shadow: none;
+  padding: 0;
+  margin-top: 8px;
+}
+
+/* Sticky fallback only for the body embed (when no index section is present). */
+.enarte-try-home.enarte-try-embed.enarte-try-wrap--home-sticky,
+.enarte-try-wrap--home-sticky {
+  position: fixed !important;
+  left: 12px !important;
+  right: 12px !important;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  top: auto !important;
+  width: auto !important;
+  margin: 0 auto !important;
+  z-index: 99990 !important;
+  inset: auto 12px calc(12px + env(safe-area-inset-bottom, 0px)) 12px !important;
+}
+
+.enarte-try-wrap--home-sticky .enarte-try-hint {
+  color: #f7f8fa;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  background: rgba(18, 22, 28, 0.55);
+  border-radius: 10px;
+  padding: 6px 10px;
+}

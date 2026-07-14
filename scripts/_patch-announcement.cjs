@@ -1,0 +1,11 @@
+﻿const fs = require("fs");
+const p = ".theme-enarte-luxury/sections/header-group.json";
+let raw = fs.readFileSync(p, "utf8");
+const target = "توصيل سريع لجميع أنحاء الأردن";
+const re = /("text"\s*:\s*")([^"]*)(")/;
+const m = raw.match(re);
+console.log("OLD=" + JSON.stringify(m && m[2]));
+raw = raw.replace(re, `$1${target}$3`);
+fs.writeFileSync(p, raw);
+const m2 = raw.match(re);
+console.log("NEW=" + JSON.stringify(m2 && m2[2]));

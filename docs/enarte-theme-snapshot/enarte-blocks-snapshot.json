@@ -1,0 +1,302 @@
+{
+  "pulledAt": "2026-07-12T00:10:08.657Z",
+  "themeId": 129303969841,
+  "themeName": "Horizon",
+  "enarte_home_try_section_exists": true,
+  "indexEnarteSections": {
+    "hero_fpjEmp": {
+      "type": "hero",
+      "blocks": {
+        "spacer_N4h4GW": {
+          "type": "spacer",
+          "settings": {
+            "size": "pixel",
+            "percent_size": 100,
+            "pixel_size": 24,
+            "custom_mobile_size": false,
+            "size_mobile": "percent",
+            "percent_size_mobile": 100,
+            "pixel_size_mobile": 120
+          },
+          "blocks": {}
+        },
+        "marquee_WWzDgg": {
+          "type": "_marquee",
+          "settings": {
+            "movement_direction": "normal",
+            "background_color": "",
+            "transparent_background": true,
+            "padding-block-start": 24,
+            "padding-block-end": 24,
+            "gap_between_elements": 24
+          },
+          "blocks": {
+            "text_ReNRr3": {
+              "type": "text",
+              "settings": {
+                "text": "<p>ENARTE LIGHTING & DECOR </p>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "h1",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "text_color": "",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_ReNRr3"
+          ]
+        },
+        "button_zwfeJX": {
+          "type": "button",
+          "settings": {
+            "label": "Shop now",
+            "link": "shopify://collections/all",
+            "open_in_new_tab": false,
+            "style_class": "button",
+            "custom_button_background": "{{ settings.color_palette.foreground }}",
+            "custom_button_text": "{{ settings.color_palette.background }}",
+            "custom_button_border": "{{ settings.color_palette.background }}",
+            "link_text_color": "",
+            "width": "fit-content",
+            "custom_width": 100,
+            "width_mobile": "fit-content",
+            "custom_width_mobile": 100
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "spacer_N4h4GW",
+        "marquee_WWzDgg",
+        "button_zwfeJX"
+      ],
+      "name": "t:names.hero_marquee",
+      "settings": {
+        "media_type_1": "video",
+        "video_1": "shopify://files/videos/WhatsApp Video 2026-06-19 at 2.58.52 PM_342f87fc-3fea-4973-9429-9bde88e12a94.mp4",
+        "media_type_2": "image",
+        "stack_media_on_mobile": false,
+        "custom_mobile_media": false,
+        "media_type_1_mobile": "image",
+        "media_type_2_mobile": "image",
+        "link": "",
+        "open_in_new_tab": false,
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "space-between",
+        "gap": 32,
+        "section_width": "page-width",
+        "section_height": "large",
+        "section_height_custom": 50,
+        "background_color": "",
+        "toggle_overlay": true,
+        "overlay_color": "#00000026",
+        "overlay_style": "gradient",
+        "gradient_direction": "to top",
+        "blurred_reflection": false,
+        "reflection_opacity": 75,
+        "padding-block-start": 0,
+        "padding-block-end": 40
+      }
+    },
+    "section_rJXrze": {
+      "type": "section",
+      "blocks": {
+        "text_gMF6yA": {
+          "type": "text",
+          "name": "about enarte",
+          "settings": {
+            "text": "<p>ENARTE Lighting & Decor offers modern lighting solutions for homes, offices, gardens, and commercial spaces across Jordan. We focus on quality, elegant design, and exceptional customer service.</p>",
+            "width": "fit-content",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "text_KAUCCE": {
+          "type": "text",
+          "name": "t:names.heading",
+          "settings": {
+            "text": "<h2>New arrivals</h2>",
+            "width": "fit-content",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "text_THLNWd": {
+          "type": "text",
+          "name": "t:names.text",
+          "settings": {
+            "text": "<p>We make things that work better and last longer. Our products solve real problems with clean design and honest materials.</p>",
+            "width": "fit-content",
+            "max_width": "normal",
+            "alignment": "left",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "button_j4wfGz": {
+          "type": "button",
+          "name": "t:names.button",
+          "settings": {
+            "label": "Shop now",
+            "link": "shopify://collections/all",
+            "open_in_new_tab": false,
+            "style_class": "button",
+            "custom_button_background": "{{ settings.color_palette.foreground }}",
+            "custom_button_text": "{{ settings.color_palette.background }}",
+            "custom_button_border": "{{ settings.color_palette.background }}",
+            "link_text_color": "",
+            "width": "fit-content",
+            "custom_width": 100,
+            "width_mobile": "fit-content",
+            "custom_width_mobile": 100
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "text_gMF6yA",
+        "text_KAUCCE",
+        "text_THLNWd",
+        "button_j4wfGz"
+      ],
+      "name": "t:names.rich_text_section",
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "flex-start",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 25,
+        "section_width": "page-width",
+        "section_height": "small",
+        "section_height_custom": 50,
+        "background_media": "none",
+        "background_color": "",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_color": "",
+        "border_radius": 0,
+        "padding-block-start": 48,
+        "padding-block-end": 48
+      }
+    },
+    "enarte_home_try_section": {
+      "type": "apps",
+      "blocks": {
+        "enarte_home_try_block": {
+          "type": "shopify://apps/enarte-ai/blocks/home-try/019f4cc2-6806-7505-ba0a-8cf34e6bb189",
+          "settings": {
+            "button_label": "✨ جربها في غرفتك",
+            "hint_text": "التقط صورة غرفتك وسنقترح أفضل 3 إنارات مناسبة",
+            "app_base_url": "https://saints-between-manufacturers-venice.trycloudflare.com"
+          }
+        }
+      },
+      "block_order": [
+        "enarte_home_try_block"
+      ],
+      "settings": {}
+    }
+  },
+  "indexOrderEnarte": [
+    "enarte_home_try_section"
+  ],
+  "productEnarteSections": {},
+  "settingsDataEnarteBlocks": {
+    "enarte_try_embed": {
+      "type": "shopify://apps/enarte-ai/blocks/enarte-try-embed/019f4cc2-6806-7505-ba0a-8cf34e6bb189",
+      "disabled": false,
+      "settings": {
+        "button_label": "✨ جربها الآن",
+        "hint_text": "التقط صورة غرفتك لتركيب هذه الإنارة",
+        "show_mode": "lighting",
+        "app_base_url": "https://saints-between-manufacturers-venice.trycloudflare.com"
+      }
+    },
+    "enarte_home_try_embed": {
+      "type": "shopify://apps/enarte-ai/blocks/home-try-embed/019f4cc2-6806-7505-ba0a-8cf34e6bb189",
+      "disabled": false,
+      "settings": {
+        "button_label": "✨ جربها في غرفتك",
+        "hint_text": "التقط صورة غرفتك وسنقترح أفضل 3 إنارات مناسبة",
+        "app_base_url": "https://saints-between-manufacturers-venice.trycloudflare.com"
+      }
+    }
+  },
+  "settingsDataEnarteKeys": []
+}

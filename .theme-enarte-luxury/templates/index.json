@@ -1,0 +1,792 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "enarte_luxury_hero": {
+      "type": "enarte-luxury-hero",
+      "name": "ENARTE Luxury Hero",
+      "settings": {
+        "eyebrow": "ENARTE LIGHTING",
+        "heading": "حيث تلتقي الإضاءة بالفخامة والجمال",
+        "subheading": "مجموعات حصرية من الثريات والإضاءة الفاخرة لمساحات تعكس ذوقك.",
+        "button_label": "تسوق الآن",
+        "button_link": "shopify://collections/all",
+        "interval": 5000,
+        "min_height": 78,
+        "image_1": "",
+        "image_2": "",
+        "image_3": "",
+        "image_4": "",
+        "image_5": ""
+      }
+    },
+    "enarte_trust": {
+      "type": "enarte-trust-badges",
+      "name": "ENARTE Trust Badges",
+      "blocks": {
+        "badge_shipping": {
+          "type": "badge",
+          "settings": {
+            "icon": "shipping",
+            "title": "شحن سريع",
+            "text": "لكل أنحاء الأردن"
+          }
+        },
+        "badge_shield": {
+          "type": "badge",
+          "settings": {
+            "icon": "shield",
+            "title": "ضمان ذهبي",
+            "text": "جودة موثوقة"
+          }
+        },
+        "badge_lock": {
+          "type": "badge",
+          "settings": {
+            "icon": "lock",
+            "title": "دفع آمن 100%",
+            "text": "حماية كاملة"
+          }
+        },
+        "badge_support": {
+          "type": "badge",
+          "settings": {
+            "icon": "support",
+            "title": "دعم العملاء",
+            "text": "نحن معك دائماً"
+          }
+        }
+      },
+      "block_order": [
+        "badge_shipping",
+        "badge_shield",
+        "badge_lock",
+        "badge_support"
+      ],
+      "settings": {}
+    },
+    "enarte_home_try_section": {
+      "type": "apps",
+      "blocks": {
+        "enarte_home_try_block": {
+          "type": "shopify://apps/enarte-ai/blocks/home-try/019f4cc2-6806-7505-ba0a-8cf34e6bb189",
+          "settings": {
+            "button_label": "تحدث مع ENARTE AI",
+            "hint_text": "افتح المساعد — صف احتياجك أو اختر إجراءً ذكياً",
+            "app_base_url": ""
+          }
+        }
+      },
+      "block_order": [
+        "enarte_home_try_block"
+      ],
+      "settings": {}
+    },
+    "collection_list_RBKfgg": {
+      "type": "collection-list",
+      "blocks": {
+        "group_mH6mEi": {
+          "type": "group",
+          "name": "t:names.header",
+          "settings": {
+            "content_direction": "column",
+            "vertical_on_mobile": true,
+            "horizontal_alignment": "flex-start",
+            "vertical_alignment": "center",
+            "align_baseline": false,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "custom_height": 100,
+            "background_media": "none",
+            "background_color": "",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "toggle_overlay": false,
+            "overlay_color": "#00000026",
+            "overlay_style": "solid",
+            "gradient_direction": "to top",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "",
+            "border_radius": 0,
+            "link": "",
+            "open_in_new_tab": false,
+            "placeholder": "",
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "text_RxiFdj": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<h3>تسوق حسب الفئة</h3>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "text_color": "",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 16,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_RxiFdj"
+          ]
+        },
+        "static-collection-card": {
+          "type": "_collection-card",
+          "name": "t:names.collection_card",
+          "static": true,
+          "settings": {
+            "placement": "below_image",
+            "horizontal_alignment": "center",
+            "vertical_alignment": "flex-end",
+            "collection_card_gap": 6,
+            "background_color": "",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "",
+            "border_radius": 14
+          },
+          "blocks": {
+            "collection_title_TeVB8x": {
+              "type": "collection-title",
+              "name": "t:names.collection_title",
+              "settings": {
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "center",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "background": false,
+                "background_color": "#ffffff",
+                "text_color": "{{ settings.color_palette.foreground }}",
+                "corner_radius": 0,
+                "padding-block-start": 8,
+                "padding-block-end": 4,
+                "padding-inline-start": 4,
+                "padding-inline-end": 4
+              },
+              "blocks": {}
+            },
+            "collection-card-image": {
+              "type": "_collection-card-image",
+              "name": "t:names.collection_card_image",
+              "static": true,
+              "settings": {
+                "image_ratio": "square",
+                "toggle_overlay": false,
+                "overlay_color": "#00000026",
+                "overlay_style": "solid",
+                "gradient_direction": "to top",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_color": "",
+                "border_radius": 12
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "collection_title_TeVB8x"
+          ]
+        }
+      },
+      "block_order": [
+        "group_mH6mEi"
+      ],
+      "name": "t:names.collections_grid",
+      "settings": {
+        "collection_list": [
+          "chandeliers",
+          "garden-lights",
+          "led-lamp",
+          "led-pendants",
+          "magnatic-led-brofil",
+          "spot-lights",
+          "wall-lights",
+          "stands-table-lamps"
+        ],
+        "layout_type": "grid",
+        "carousel_on_mobile": true,
+        "columns": 4,
+        "mobile_columns": "2",
+        "mobile_card_size": "42cqw",
+        "columns_gap": 14,
+        "bento_gap": 14,
+        "rows_gap": 16,
+        "max_collections": 8,
+        "icons_style": "arrow",
+        "icons_shape": "none",
+        "section_width": "page-width",
+        "gap": 12,
+        "background_color": "",
+        "padding-block-start": 56,
+        "padding-block-end": 40
+      }
+    },
+    "enarte_ai_features": {
+      "type": "enarte-ai-features",
+      "name": "ENARTE AI Features",
+      "blocks": {
+        "feature_search": {
+          "type": "feature",
+          "settings": {
+            "title": "ابحث بالصورة",
+            "text": "ارفع صورة أي ثريا ونجد لك ما يناسبها",
+            "button_label": "ابحث الآن",
+            "button_link": "",
+            "style": "search"
+          }
+        },
+        "feature_ai": {
+          "type": "feature",
+          "settings": {
+            "title": "ENARTE AI",
+            "text": "مساعدك الذكي لاختيار الإضاءة المثالية لمساحتك",
+            "button_label": "تحدث الآن",
+            "button_link": "",
+            "style": "ai"
+          }
+        },
+        "feature_room": {
+          "type": "feature",
+          "settings": {
+            "title": "جرب الإضاءة في غرفتك",
+            "text": "شاهد كيف ستبدو الإضاءة في مساحتك باستخدام الذكاء الاصطناعي",
+            "button_label": "جرب الآن",
+            "button_link": "",
+            "style": "room"
+          }
+        }
+      },
+      "block_order": [
+        "feature_search",
+        "feature_ai",
+        "feature_room"
+      ],
+      "settings": {
+        "heading": "تجربة ENARTE الذكية",
+        "subheading": "تقنيات متقدمة تساعدك على اختيار وتركيب الإضاءة المثالية لمساحتك."
+      }
+    },
+    "product_list_fa6P9H": {
+      "type": "product-list",
+      "blocks": {
+        "static-header": {
+          "type": "_product-list-content",
+          "name": "t:names.header",
+          "static": true,
+          "settings": {
+            "content_direction": "row",
+            "vertical_on_mobile": false,
+            "horizontal_alignment": "space-between",
+            "vertical_alignment": "flex-end",
+            "align_baseline": true,
+            "horizontal_alignment_flex_direction_column": "flex-start",
+            "vertical_alignment_flex_direction_column": "center",
+            "gap": 12,
+            "width": "fill",
+            "custom_width": 100,
+            "width_mobile": "fill",
+            "custom_width_mobile": 100,
+            "height": "fit",
+            "custom_height": 100,
+            "background_media": "none",
+            "background_color": "",
+            "video_position": "cover",
+            "background_image_position": "cover",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "",
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "text_GPE63Y": {
+              "type": "text",
+              "name": "t:names.text",
+              "settings": {
+                "text": "<h3>منتجات مميزة</h3>",
+                "width": "fit-content",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "text_color": "",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "product_list_button_MWeP9V": {
+              "type": "_product-list-button",
+              "name": "t:names.product_list_button",
+              "settings": {
+                "label": "عرض الكل",
+                "open_in_new_tab": false,
+                "style_class": "link",
+                "custom_button_background": "{{ settings.color_palette.foreground }}",
+                "custom_button_text": "{{ settings.color_palette.background }}",
+                "custom_button_border": "{{ settings.color_palette.background }}",
+                "link_text_color": "",
+                "width": "fit-content",
+                "custom_width": 100,
+                "width_mobile": "fit-content",
+                "custom_width_mobile": 100
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "text_GPE63Y",
+            "product_list_button_MWeP9V"
+          ]
+        },
+        "static-product-card": {
+          "type": "_product-card",
+          "name": "t:names.product_card",
+          "static": true,
+          "settings": {
+            "product_card_gap": 4,
+            "background_color": "",
+            "border": "none",
+            "border_width": 1,
+            "border_opacity": 100,
+            "border_color": "",
+            "border_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {
+            "product_card_gallery_677WP3": {
+              "type": "_product-card-gallery",
+              "name": "t:names.product_card_media",
+              "settings": {
+                "image_ratio": "adapt",
+                "border": "none",
+                "border_width": 1,
+                "border_opacity": 100,
+                "border_color": "",
+                "border_radius": 0,
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "product_title_YXxMTj": {
+              "type": "product-title",
+              "name": "t:names.product_title",
+              "settings": {
+                "width": "100%",
+                "max_width": "normal",
+                "alignment": "left",
+                "type_preset": "rte",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "wrap": "pretty",
+                "text_color": "",
+                "background": false,
+                "background_color": "#00000026",
+                "corner_radius": 0,
+                "padding-block-start": 4,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "price_JQzVV4": {
+              "type": "price",
+              "name": "t:names.product_price",
+              "settings": {
+                "show_sale_price_first": true,
+                "show_installments": false,
+                "show_tax_info": false,
+                "type_preset": "h6",
+                "width": "100%",
+                "alignment": "left",
+                "font": "var(--font-body--family)",
+                "font_size": "1rem",
+                "line_height": "normal",
+                "letter_spacing": "normal",
+                "case": "none",
+                "text_color": "",
+                "padding-block-start": 0,
+                "padding-block-end": 0,
+                "padding-inline-start": 0,
+                "padding-inline-end": 0
+              },
+              "blocks": {}
+            },
+            "review_product_card": {
+              "type": "review",
+              "name": "Product rating",
+              "settings": {
+                "use_fallback": true,
+                "fallback_rating": "4.9",
+                "fallback_count": "18",
+                "stars_style": "shaded",
+                "show_number": true,
+                "text_color": "#c4a574",
+                "type_preset": "paragraph",
+                "width": "100%",
+                "alignment": "left"
+              },
+              "blocks": {}
+            }
+          },
+          "block_order": [
+            "product_card_gallery_677WP3",
+            "product_title_YXxMTj",
+            "review_product_card",
+            "price_JQzVV4"
+          ]
+        }
+      },
+      "disabled": false,
+      "name": "Featured collection",
+      "settings": {
+        "collection": "all",
+        "layout_type": "grid",
+        "carousel_on_mobile": true,
+        "max_products": 8,
+        "columns": 4,
+        "mobile_columns": "2",
+        "mobile_card_size": "44cqw",
+        "columns_gap": 8,
+        "rows_gap": 16,
+        "icons_style": "arrow",
+        "icons_shape": "none",
+        "section_width": "page-width",
+        "horizontal_alignment": "flex-start",
+        "gap": 28,
+        "background_color": "{{ settings.color_palette.background }}",
+        "padding-block-start": 40,
+        "padding-block-end": 56
+      }
+    },
+    "enarte_reviews": {
+      "type": "enarte-reviews",
+      "name": "ENARTE Reviews",
+      "blocks": {
+        "rev_1": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "الثريا وصلت بسرعة والجودة ممتازة. إضاءة غرفة الجلوس صارت فخمة جداً.",
+            "author": "سارة م.",
+            "location": "عمّان"
+          }
+        },
+        "rev_2": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "تعامل راقٍ وتركيب احترافي. أنصح في ENARTE لكل من يبحث عن إضاءة فاخرة.",
+            "author": "أحمد خ.",
+            "location": "عبدون"
+          }
+        },
+        "rev_3": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "جربت المساعد الذكي واخترت ثريا تناسب مساحتي. المنتج مطابق للصور تماماً.",
+            "author": "نور ع.",
+            "location": "الزرقاء"
+          }
+        },
+        "rev_4": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "طلبت أبليك للممر والتركيب كان نظيف وسريع. شكل الإضاءة غيّر جو البيت بالكامل.",
+            "author": "ليان ر.",
+            "location": "خلدا"
+          }
+        },
+        "rev_5": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "جودة الخامات ممتازة والسعر مناسب مقارنة بالمحلات. خدمة المتابعة بعد البيع راقية.",
+            "author": "محمد ف.",
+            "location": "إربد"
+          }
+        },
+        "rev_6": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "اخترت ستاند لامب من التصفية ووصلني بنفس اليوم داخل عمّان. شكله فخم جداً.",
+            "author": "هند س.",
+            "location": "الجبيهة"
+          }
+        }
+      },
+      "block_order": ["rev_1", "rev_2", "rev_3", "rev_4", "rev_5", "rev_6"],
+      "settings": {
+        "heading": "آراء عملاء ENARTE",
+        "subheading": "تقييمات من عملائنا في الأردن لتجربة الإضاءة الفاخرة.",
+        "show_store_score": true,
+        "store_rating": "4.9",
+        "store_review_count": "210+",
+        "show_form": true,
+        "form_heading": "أضف تقييمك",
+        "form_subheading": "شاركنا تجربتك مع ENARTE — تقييمك يساعدنا ويساعد غيرك.",
+        "submit_label": "أرسل تقييمك",
+        "success_text": "شكراً لك! استلمنا تقييمك وسيظهر بعد المراجعة.",
+        "form_note": "يظهر التقييم على الموقع بعد مراجعة فريق ENARTE."
+      }
+    },
+    "enarte_sale": {
+      "type": "enarte-sale-clearance",
+      "name": "التصفية والخصومات",
+      "settings": {
+        "heading": "التصفية والخصومات",
+        "subheading": "عروض محدودة على قطع مختارة — اسحب للاطلاع على المزيد.",
+        "collection": "",
+        "only_discounted": false,
+        "max_products": 10,
+        "button_label": "عرض الكل",
+        "button_link": "shopify://collections/all",
+        "empty_text": "لا توجد منتجات مخفّضة حالياً — ترقّب عروض التصفية قريباً."
+      }
+    },
+
+    "enarte_service": {
+      "type": "enarte-service-install",
+      "name": "ENARTE Service Install",
+      "blocks": {
+        "perk_warranty": {
+          "type": "perk",
+          "settings": {
+            "icon_style": "shield",
+            "label": "ضمان على التركيب"
+          }
+        },
+        "perk_time": {
+          "type": "perk",
+          "settings": {
+            "icon_style": "time",
+            "label": "توفير الوقت والجهد"
+          }
+        },
+        "perk_price": {
+          "type": "perk",
+          "settings": {
+            "icon_style": "price",
+            "label": "أسعار مناسبة"
+          }
+        },
+        "perk_quality": {
+          "type": "perk",
+          "settings": {
+            "icon_style": "quality",
+            "label": "مواد عالية الجودة"
+          }
+        }
+      },
+      "block_order": [
+        "perk_warranty",
+        "perk_time",
+        "perk_price",
+        "perk_quality"
+      ],
+      "settings": {
+        "banner_image": "",
+        "heading": "اطلب معاينة أو تركيب",
+        "intro": "خدمة فاخرة من فريق ENARTE لضمان تركيب مثالي وإضاءة تليق بمنزلك.",
+        "card1_title": "معاينة مجانية",
+        "card1_text": "المعاينة مجانية داخل محافظة عمان. أما في باقي المحافظات فتُخصم قيمة المعاينة بالكامل من قيمة الفاتورة عند إتمام عملية الشراء.",
+        "card2_title": "فريق تركيب محترف",
+        "card2_text": "فريق متخصص في تركيب وتفصيل جميع أنواع الإضاءة والثريات، جاهز لتنفيذ مختلف المشاريع وتلبية جميع احتياجاتك باحترافية وأسعار مناسبة.",
+        "phone": "00962782404023",
+        "call_label": "📞 اتصل الآن",
+        "whatsapp_label": "🟢 تواصل عبر واتساب",
+        "whatsapp_url": "https://wa.me/962782404023"
+      }
+    },
+    "section_rJXrze": {
+      "type": "section",
+      "blocks": {
+        "text_KAUCCE": {
+          "type": "text",
+          "name": "t:names.heading",
+          "settings": {
+            "text": "<h2>عن ENARTE</h2>",
+            "width": "fit-content",
+            "max_width": "normal",
+            "alignment": "center",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "text_THLNWd": {
+          "type": "text",
+          "name": "t:names.text",
+          "settings": {
+            "text": "<p>إنارتي هي وجهتك الأولى للإضاءة والديكور في الأردن — حلول عصرية للمنازل والمكاتب والحدائق والمساحات التجارية، بجودة راقية وتصميم أنيق وخدمة استثنائية.</p>",
+            "width": "100%",
+            "max_width": "normal",
+            "alignment": "center",
+            "type_preset": "rte",
+            "font": "var(--font-body--family)",
+            "font_size": "1rem",
+            "line_height": "normal",
+            "letter_spacing": "normal",
+            "case": "none",
+            "wrap": "pretty",
+            "text_color": "",
+            "background": false,
+            "background_color": "#00000026",
+            "corner_radius": 0,
+            "padding-block-start": 0,
+            "padding-block-end": 0,
+            "padding-inline-start": 0,
+            "padding-inline-end": 0
+          },
+          "blocks": {}
+        },
+        "button_j4wfGz": {
+          "type": "button",
+          "name": "t:names.button",
+          "settings": {
+            "label": "تسوق الآن",
+            "link": "shopify://collections/all",
+            "open_in_new_tab": false,
+            "style_class": "button",
+            "custom_button_background": "#c4a35a",
+            "custom_button_text": "#1c1914",
+            "custom_button_border": "#c4a35a",
+            "link_text_color": "",
+            "width": "fit-content",
+            "custom_width": 100,
+            "width_mobile": "fit-content",
+            "custom_width_mobile": 100
+          },
+          "blocks": {}
+        }
+      },
+      "block_order": [
+        "text_KAUCCE",
+        "text_THLNWd",
+        "button_j4wfGz"
+      ],
+      "name": "t:names.rich_text_section",
+      "settings": {
+        "content_direction": "column",
+        "vertical_on_mobile": true,
+        "horizontal_alignment": "center",
+        "vertical_alignment": "center",
+        "align_baseline": false,
+        "horizontal_alignment_flex_direction_column": "center",
+        "vertical_alignment_flex_direction_column": "center",
+        "gap": 20,
+        "section_width": "page-width",
+        "section_height": "small",
+        "section_height_custom": 50,
+        "background_media": "none",
+        "background_color": "",
+        "video_position": "cover",
+        "background_image_position": "cover",
+        "toggle_overlay": false,
+        "overlay_color": "#00000026",
+        "overlay_style": "solid",
+        "gradient_direction": "to top",
+        "border": "none",
+        "border_width": 1,
+        "border_opacity": 100,
+        "border_color": "",
+        "border_radius": 0,
+        "padding-block-start": 56,
+        "padding-block-end": 56
+      }
+    }
+  },
+  "order": [
+    "enarte_luxury_hero",
+    "enarte_trust",
+    "collection_list_RBKfgg",
+    "enarte_ai_features",
+    "enarte_home_try_section",
+    "enarte_sale",
+    "product_list_fa6P9H",
+    "enarte_service",
+    "enarte_reviews",
+    "section_rJXrze"
+  ]
+}

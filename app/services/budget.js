@@ -142,3 +142,88 @@ export function wasBudgetExplicitlySelected(rawValue) {
   const value = String(rawValue).trim();
   return isValidBudgetId(value);
 }
+
+/**
+ * Whether a numeric price falls inside a budget range (JOD).
+ * @param {number} price
+ * @param {{ hasLimit: boolean, min: number | null, max: number | null }} budgetRange
+ */
+export function isPriceInBudget(price, budgetRange) {
+  if (!budgetRange || !budgetRange.hasLimit) {
+    return true;
+  }
+
+  const amount = Number(price);
+  if (!Number.isFinite(amount)) {
+    return false;
+  }
+
+  const min = budgetRange.min == null ? 0 : Number(budgetRange.min);
+  const max = budgetRange.max == null ? Number.POSITIVE_INFINITY : Number(budgetRange.max);
+
+  // under_50: 0–50 inclusive; ranges are inclusive on both ends
+  return amount >= min && amount <= max;
+}
+
+/**
+ * Distance from a price to a budget band (0 = inside the band).
+ * Used when no in-budget products exist so we can fall back to closest prices.
+ */
+export function getBudgetPriceDistance(price, budgetRange) {
+  if (!budgetRange || !budgetRange.hasLimit) {
+    return 0;
+  }
+
+  const amount = Number(price);
+  if (!Number.isFinite(amount)) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const min = budgetRange.min == null ? 0 : Number(budgetRange.min);
+  const max =
+    budgetRange.max == null ? Number.POSITIVE_INFINITY : Number(budgetRange.max);
+
+  if (amount < min) {
+    return min - amount;
+  }
+  if (Number.isFinite(max) && amount > max) {
+    return amount - max;
+  }
+  return 0;
+}
+
+/**
+ * Prefer products inside the budget; otherwise sort by closest price to the band.
+ * @template {{ priceAmount?: number|null }} T
+ * @param {T[]} products
+ * @param {{ hasLimit: boolean, min: number | null, max: number | null }} budgetRange
+ * @returns {{ products: T[], usedBudgetFallback: boolean }}
+ */
+export function selectProductsForBudget(products, budgetRange) {
+  const list = Array.isArray(products) ? products : [];
+  if (!budgetRange?.hasLimit) {
+    return { products: list, usedBudgetFallback: false };
+  }
+
+  const inBudget = list.filter((product) =>
+    isPriceInBudget(product.priceAmount, budgetRange),
+  );
+  if (inBudget.length > 0) {
+    return { products: inBudget, usedBudgetFallback: false };
+  }
+
+  const closest = [...list].sort((a, b) => {
+    const da = getBudgetPriceDistance(a.priceAmount, budgetRange);
+    const db = getBudgetPriceDistance(b.priceAmount, budgetRange);
+    if (da !== db) {
+      return da - db;
+    }
+    const pa = Number(a.priceAmount);
+    const pb = Number(b.priceAmount);
+    const safeA = Number.isFinite(pa) ? pa : Number.POSITIVE_INFINITY;
+    const safeB = Number.isFinite(pb) ? pb : Number.POSITIVE_INFINITY;
+    return safeA - safeB;
+  });
+
+  return { products: closest, usedBudgetFallback: true };
+}

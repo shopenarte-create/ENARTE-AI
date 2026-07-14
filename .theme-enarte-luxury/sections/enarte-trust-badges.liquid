@@ -1,0 +1,113 @@
+{% comment %} ENARTE trust badges row {% endcomment %}
+<section class="enarte-trust enarte-reveal">
+  <div class="page-width enarte-trust__grid">
+    {% for block in section.blocks %}
+      <div class="enarte-trust__item" {{ block.shopify_attributes }}>
+        <div class="enarte-trust__icon" aria-hidden="true">
+          {% case block.settings.icon %}
+            {% when 'shipping' %}
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h11v10H3z"/><path d="M14 10h4l3 3v4h-7"/><circle cx="7" cy="18" r="1.5"/><circle cx="17" cy="18" r="1.5"/></svg>
+            {% when 'shield' %}
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></svg>
+            {% when 'lock' %}
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>
+            {% else %}
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 14v-2a8 8 0 0116 0v2"/><path d="M4 14a2 2 0 002 2h1v3H6a2 2 0 01-2-2v-3zm16 0a2 2 0 01-2 2h-1v3h1a2 2 0 002-2v-3z"/></svg>
+          {% endcase %}
+        </div>
+        <p class="enarte-trust__title">{{ block.settings.title }}</p>
+        {% if block.settings.text != blank %}
+          <p class="enarte-trust__text">{{ block.settings.text }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% stylesheet %}
+  .enarte-trust {
+    padding: clamp(1.75rem, 3vw, 2.5rem) 0;
+    background: linear-gradient(180deg, #f3ece1 0%, #efe8dc 100%);
+    border-block: 1px solid rgba(28, 25, 20, 0.06);
+  }
+  .enarte-trust__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: start;
+  }
+  .enarte-trust__item {
+    text-align: center;
+    padding: 0.35rem 0.5rem;
+    min-width: 0;
+  }
+  .enarte-trust__icon {
+    color: var(--enarte-gold-deep, #9a7b3c);
+    margin-bottom: 0.7rem;
+    display: flex;
+    justify-content: center;
+  }
+  .enarte-trust__icon svg {
+    display: block;
+  }
+  .enarte-trust__title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: var(--enarte-charcoal, #1c1914);
+    line-height: 1.35;
+  }
+  .enarte-trust__text {
+    margin: 0.35rem 0 0;
+    font-size: 0.85rem;
+    color: var(--enarte-muted, #6b6560);
+    line-height: 1.5;
+  }
+  @media (max-width: 899px) {
+    .enarte-trust__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 1.35rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ENARTE Trust Badges",
+  "class": "section-enarte-trust",
+  "max_blocks": 4,
+  "blocks": [
+    {
+      "type": "badge",
+      "name": "Badge",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "default": "shipping",
+          "options": [
+            { "value": "shipping", "label": "Shipping" },
+            { "value": "shield", "label": "Guarantee" },
+            { "value": "lock", "label": "Secure" },
+            { "value": "support", "label": "Support" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "توصيل سريع" },
+        { "type": "text", "id": "text", "label": "Text", "default": "لكل أنحاء الأردن" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ENARTE Trust Badges",
+      "blocks": [
+        { "type": "badge", "settings": { "icon": "shipping", "title": "شحن سريع", "text": "لكل أنحاء الأردن" } },
+        { "type": "badge", "settings": { "icon": "shield", "title": "ضمان ذهبي", "text": "جودة موثوقة" } },
+        { "type": "badge", "settings": { "icon": "lock", "title": "دفع آمن 100%", "text": "حماية كاملة" } },
+        { "type": "badge", "settings": { "icon": "support", "title": "دعم العملاء", "text": "نحن معك دائماً" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

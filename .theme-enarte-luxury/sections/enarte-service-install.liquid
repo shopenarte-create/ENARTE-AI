@@ -1,0 +1,480 @@
+{% comment %}
+  ENARTE service — اطلب معاينة أو تركيب
+  Dark premium banner matching design reference. Presentation only.
+{% endcomment %}
+
+{%- liquid
+  assign service_fallback = 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1600&q=82'
+-%}
+
+<section class="enarte-service">
+  <div class="enarte-service__panel">
+    <div class="enarte-service__media" aria-hidden="true">
+      {%- if section.settings.banner_image != blank -%}
+        {{
+          section.settings.banner_image
+          | image_url: width: 1600
+          | image_tag: loading: 'lazy', sizes: '(min-width: 990px) 42vw, 100vw', class: 'enarte-service__img'
+        }}
+      {%- else -%}
+        <img
+          class="enarte-service__img"
+          src="{{ service_fallback }}"
+          alt=""
+          width="1600"
+          height="1200"
+          loading="lazy"
+          decoding="async"
+        >
+      {%- endif -%}
+      <div class="enarte-service__media-shade"></div>
+    </div>
+
+    <div class="enarte-service__content enarte-reveal">
+      <h2 class="enarte-service__title enarte-display">{{ section.settings.heading }}</h2>
+      {%- if section.settings.intro != blank -%}
+        <p class="enarte-service__intro">{{ section.settings.intro }}</p>
+      {%- endif -%}
+
+      <details class="enarte-service__details">
+        <summary class="enarte-service__details-summary">عرض تفاصيل الخدمة</summary>
+        <div class="enarte-service__features">
+        <article class="enarte-service__feature">
+          <div class="enarte-service__feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="enarte-display">{{ section.settings.card1_title }}</h3>
+            <p>{{ section.settings.card1_text }}</p>
+          </div>
+        </article>
+        <article class="enarte-service__feature">
+          <div class="enarte-service__feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M8 14c0-2.2 1.8-4 4-4s4 1.8 4 4" stroke-linecap="round"/>
+              <path d="M6 20h12v-1.5a4.5 4.5 0 00-4.5-4.5h-3A4.5 4.5 0 006 18.5V20z"/>
+              <path d="M9 8.5V5.8a.8.8 0 01.8-.8h4.4a.8.8 0 01.8.8V8.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="enarte-display">{{ section.settings.card2_title }}</h3>
+            <p>{{ section.settings.card2_text }}</p>
+          </div>
+        </article>
+        </div>
+      </details>
+
+      <div class="enarte-service__contact">
+        <div class="enarte-service__actions">
+          <a
+            class="enarte-btn enarte-btn--gold enarte-service__btn"
+            href="tel:{{ section.settings.phone | replace: ' ', '' }}"
+            aria-label="{{ section.settings.call_label | escape }}"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M6.5 4.5h3l1.2 4.2-2 1.2a12 12 0 005.4 5.4l1.2-2 4.2 1.2v3a1.5 1.5 0 01-1.6 1.5A15.5 15.5 0 015 6.1a1.5 1.5 0 011.5-1.6z" stroke-linejoin="round"/>
+            </svg>
+            {{ section.settings.call_label }}
+          </a>
+          <a
+            class="enarte-btn enarte-btn--whatsapp enarte-service__btn"
+            href="{{ section.settings.whatsapp_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="{{ section.settings.whatsapp_label | escape }}"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="currentColor">
+              <path d="M12.04 2a9.9 9.9 0 00-8.5 14.9L2 22l5.25-1.38A9.9 9.9 0 1012.04 2zm0 1.8a8.1 8.1 0 110 16.2 8 8 0 01-4.08-1.1l-.29-.17-3.11.82.83-3.03-.19-.31a8.1 8.1 0 016.84-12.41zm4.63 10.4c-.2.56-1.16 1.07-1.61 1.14-.41.06-.93.09-1.5-.09-.35-.12-.79-.25-1.36-.49-2.4-1.04-3.96-3.46-4.08-3.62-.12-.17-1-1.33-1-2.54s.63-1.8.86-2.05c.22-.24.49-.3.65-.3h.47c.15 0 .35-.06.55.42.2.49.69 1.69.75 1.81.06.12.1.26.02.42-.08.17-.12.26-.24.4-.12.14-.25.31-.36.42-.12.12-.24.24-.1.47.14.23.63 1.04 1.35 1.68.93.83 1.71 1.09 1.95 1.21.24.12.38.1.52-.06.14-.17.59-.69.75-.93.16-.24.32-.2.54-.12.22.08 1.39.66 1.63.78.24.12.4.18.46.28.06.1.06.58-.14 1.14z"/>
+            </svg>
+            {{ section.settings.whatsapp_label }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {%- if section.blocks.size > 0 -%}
+    <div class="enarte-service__perks enarte-reveal">
+      <div class="page-width enarte-service__perks-grid">
+        {% for block in section.blocks %}
+          <div class="enarte-service__perk" {{ block.shopify_attributes }}>
+            <span class="enarte-service__perk-icon" aria-hidden="true">
+              {%- case block.settings.icon_style -%}
+                {%- when 'time' -%}
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5" stroke-linecap="round"/></svg>
+                {%- when 'price' -%}
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>
+                {%- when 'quality' -%}
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.9 7.2 18l.9-5.4L4.2 8.7l5.4-.8L12 3z"/></svg>
+                {%- else -%}
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/><path d="M9 12l2 2 4-4" stroke-linecap="round"/></svg>
+              {%- endcase -%}
+            </span>
+            <p>{{ block.settings.label }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {%- endif -%}
+</section>
+
+{% stylesheet %}
+  .enarte-service {
+    margin-top: 0.5rem;
+  }
+
+  .enarte-service__panel {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    background: #15130f;
+    color: #f7f3ec;
+    min-height: 420px;
+    overflow: hidden;
+  }
+
+  .enarte-service__media {
+    position: relative;
+    min-height: 320px;
+  }
+
+  .enarte-service__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .enarte-service__media-shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 55%, rgba(21, 19, 15, 0.55));
+  }
+
+  [dir='rtl'] .enarte-service__media-shade {
+    background: linear-gradient(270deg, transparent 55%, rgba(21, 19, 15, 0.55));
+  }
+
+  .enarte-service__content {
+    padding: clamp(2rem, 4vw, 3.25rem) clamp(1.25rem, 3.5vw, 3rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .enarte-service__title {
+    margin: 0;
+    color: #c4a35a !important;
+    font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+    line-height: 1.2;
+  }
+
+  .enarte-service__intro {
+    margin: 0.85rem 0 0;
+    max-width: 36rem;
+    color: rgba(247, 243, 236, 0.78);
+    line-height: 1.7;
+  }
+
+  .enarte-service__features {
+    margin-top: 1.6rem;
+    display: grid;
+    gap: 1.15rem;
+  }
+
+  .enarte-service__feature {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+  }
+
+  .enarte-service__feature-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: #c4a35a;
+    background: rgba(196, 163, 90, 0.12);
+    border: 1px solid rgba(196, 163, 90, 0.28);
+    flex-shrink: 0;
+  }
+
+  .enarte-service__feature h3 {
+    margin: 0 0 0.35rem;
+    color: #fff !important;
+    font-size: 1.25rem;
+  }
+
+  .enarte-service__feature p {
+    margin: 0;
+    color: rgba(247, 243, 236, 0.78);
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+
+  .enarte-service__contact {
+    margin-top: 1.75rem;
+  }
+
+  .enarte-service__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0;
+  }
+
+  .enarte-service__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 10.5rem;
+    padding: 0.85rem 1.25rem;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .enarte-btn--whatsapp {
+    background: #25d366 !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: 0 8px 22px rgba(37, 211, 102, 0.28);
+  }
+
+  .enarte-btn--whatsapp:hover {
+    background: #1ebe57 !important;
+    transform: translateY(-1px);
+  }
+
+  .enarte-service__perks {
+    background: #efe8dc;
+    border-block: 1px solid rgba(28, 25, 20, 0.06);
+    padding: 1.15rem 0;
+  }
+
+  .enarte-service__perks-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .enarte-service__perk {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    text-align: center;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .enarte-service__perk-icon {
+    color: #9a7b3c;
+    display: grid;
+    place-items: center;
+  }
+
+  .enarte-service__perk p {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2a2620;
+  }
+
+  @media (max-width: 989px) {
+    .enarte-service__panel {
+      grid-template-columns: 1fr;
+    }
+    .enarte-service__media {
+      min-height: 220px;
+      max-height: 260px;
+    }
+    .enarte-service__media-shade,
+    [dir='rtl'] .enarte-service__media-shade,
+    html:lang(ar) .enarte-service__media-shade {
+      background: linear-gradient(to top, rgba(21, 19, 15, 0.55), transparent 55%);
+    }
+    .enarte-service__content {
+      padding: 1.75rem 1.15rem 2rem;
+    }
+  }
+
+  .enarte-service__details > summary {
+    list-style: none;
+  }
+
+  .enarte-service__details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (min-width: 750px) {
+    .enarte-service__details > summary {
+      display: none;
+    }
+
+    .enarte-service__details .enarte-service__features {
+      display: grid;
+    }
+  }
+
+  @media (max-width: 749px) {
+    .enarte-service__details {
+      margin-top: 0.85rem;
+      border: 1px solid rgba(196, 163, 90, 0.24);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .enarte-service__details > summary {
+      padding: 0.65rem 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #c4a35a;
+    }
+
+    .enarte-service__details[open] > summary {
+      border-bottom: 1px solid rgba(196, 163, 90, 0.16);
+    }
+
+    .enarte-service__details .enarte-service__features {
+      padding: 0.65rem 0.85rem 0.15rem;
+      margin-top: 0;
+      gap: 0.75rem;
+    }
+
+    .enarte-service__perks-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem 0.5rem;
+    }
+    .enarte-service__actions {
+      flex-direction: column;
+    }
+    .enarte-service__btn {
+      width: 100%;
+    }
+    .enarte-service__title {
+      font-size: clamp(1.65rem, 6vw, 2.1rem);
+    }
+  }
+
+  @media (max-width: 549px) {
+    .enarte-service__feature {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+    }
+    .enarte-service__feature-icon {
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ENARTE Service Install",
+  "class": "section-enarte-service",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "banner_image",
+      "label": "Banner image"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "اطلب معاينة أو تركيب"
+    },
+    {
+      "type": "textarea",
+      "id": "intro",
+      "label": "Intro",
+      "default": "خدمة فاخرة من فريق ENARTE لضمان تركيب مثالي وإضاءة تليق بمنزلك."
+    },
+    {
+      "type": "text",
+      "id": "card1_title",
+      "label": "Feature 1 title",
+      "default": "معاينة مجانية"
+    },
+    {
+      "type": "textarea",
+      "id": "card1_text",
+      "label": "Feature 1 text",
+      "default": "المعاينة مجانية داخل محافظة عمان. أما في باقي المحافظات فتُخصم قيمة المعاينة بالكامل من قيمة الفاتورة عند إتمام عملية الشراء."
+    },
+    {
+      "type": "text",
+      "id": "card2_title",
+      "label": "Feature 2 title",
+      "default": "فريق تركيب محترف"
+    },
+    {
+      "type": "textarea",
+      "id": "card2_text",
+      "label": "Feature 2 text",
+      "default": "فريق متخصص في تركيب وتفصيل جميع أنواع الإضاءة والثريات، جاهز لتنفيذ مختلف المشاريع وتلبية جميع احتياجاتك باحترافية وأسعار مناسبة."
+    },
+    {
+      "type": "text",
+      "id": "phone",
+      "label": "Phone",
+      "default": "00962782404023"
+    },
+    {
+      "type": "text",
+      "id": "call_label",
+      "label": "Call button",
+      "default": "📞 اتصل الآن"
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_label",
+      "label": "WhatsApp button",
+      "default": "🟢 تواصل عبر واتساب"
+    },
+    {
+      "type": "text",
+      "id": "whatsapp_url",
+      "label": "WhatsApp URL",
+      "default": "https://wa.me/962782404023"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "perk",
+      "name": "Perk",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon_style",
+          "label": "Icon",
+          "default": "shield",
+          "options": [
+            { "value": "shield", "label": "Guarantee" },
+            { "value": "time", "label": "Time" },
+            { "value": "price", "label": "Price" },
+            { "value": "quality", "label": "Quality" }
+          ]
+        },
+        { "type": "text", "id": "label", "label": "Label", "default": "ضمان على التركيب" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ENARTE Service Install",
+      "blocks": [
+        { "type": "perk", "settings": { "icon_style": "shield", "label": "ضمان على التركيب" } },
+        { "type": "perk", "settings": { "icon_style": "time", "label": "توفير الوقت والجهد" } },
+        { "type": "perk", "settings": { "icon_style": "price", "label": "أسعار مناسبة" } },
+        { "type": "perk", "settings": { "icon_style": "quality", "label": "مواد عالية الجودة" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

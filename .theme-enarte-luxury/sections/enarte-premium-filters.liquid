@@ -1,0 +1,286 @@
+{% comment %}
+  ENARTE premium filters chrome for collection / search pages.
+  Uses Shopify Search & Discovery facets when enabled in Admin.
+  Price row: Minimum → open-ended maximum (no hard ceiling).
+{% endcomment %}
+
+<section class="enarte-filters" aria-label="{{ section.settings.heading | default: 'تصفية المنتجات' | escape }}">
+  <div class="page-width enarte-filters__inner">
+    <div class="enarte-filters__head">
+      <h2 class="enarte-filters__title enarte-display">{{ section.settings.heading }}</h2>
+      {% if section.settings.subheading != blank %}
+        <p class="enarte-filters__sub">{{ section.settings.subheading }}</p>
+      {% endif %}
+    </div>
+
+    <ul class="enarte-filters__chips" role="list">
+      {% for block in section.blocks %}
+        <li class="enarte-filters__chip" {{ block.shopify_attributes }}>
+          <span class="enarte-filters__chip-label">{{ block.settings.label }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <form
+      class="enarte-filters__price"
+      method="get"
+      action="{% if collection %}{{ collection.url }}{% else %}{{ routes.search_url }}{% endif %}"
+      data-enarte-open-price
+    >
+      {% if search.terms != blank %}
+        <input type="hidden" name="q" value="{{ search.terms | escape }}">
+      {% endif %}
+      <label class="enarte-filters__price-label" for="enarte-price-min-{{ section.id }}">السعر</label>
+      <div class="enarte-filters__price-row">
+        <input
+          id="enarte-price-min-{{ section.id }}"
+          class="enarte-filters__price-input"
+          type="number"
+          name="filter.v.price.gte"
+          min="0"
+          step="1"
+          inputmode="decimal"
+          placeholder="الحد الأدنى"
+          value=""
+          aria-label="الحد الأدنى للسعر"
+        >
+        <span class="enarte-filters__price-sep" aria-hidden="true">→</span>
+        <input
+          class="enarte-filters__price-input enarte-filters__price-input--open"
+          type="text"
+          inputmode="decimal"
+          placeholder="بدون حد أقصى"
+          value=""
+          aria-label="الحد الأقصى للسعر (اختياري)"
+          data-enarte-price-max
+        >
+        <button type="submit" class="enarte-filters__price-btn">تطبيق</button>
+      </div>
+      <p class="enarte-filters__price-note">من الحد الأدنى → بدون حد أقصى. اترك الحد الأقصى فارغاً للبحث بدون سقف.</p>
+    </form>
+
+    <p class="enarte-filters__hint">
+      {{ section.settings.hint }}
+    </p>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var form = document.querySelector("[data-enarte-open-price]");
+    if (!form) return;
+    form.addEventListener("submit", function () {
+      var maxInput = form.querySelector("[data-enarte-price-max]");
+      if (!maxInput) return;
+      var raw = (maxInput.value || "").trim();
+      form.querySelectorAll('input[name="filter.v.price.lte"]').forEach(function (el) {
+        el.remove();
+      });
+      if (raw !== "" && !isNaN(Number(raw))) {
+        var hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = "filter.v.price.lte";
+        hidden.value = String(raw);
+        form.appendChild(hidden);
+      }
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .enarte-filters {
+    padding: 1.25rem 0 0.35rem;
+  }
+
+  .enarte-filters__inner {
+    background: #fffcf8;
+    border: 1px solid rgba(28, 25, 20, 0.08);
+    border-radius: 16px;
+    padding: 1.15rem 1.25rem 1.2rem;
+    box-shadow: 0 10px 28px rgba(28, 25, 20, 0.04);
+  }
+
+  .enarte-filters__head {
+    margin-bottom: 0.85rem;
+  }
+
+  .enarte-filters__title {
+    margin: 0;
+    font-size: clamp(1.2rem, 2vw, 1.45rem);
+  }
+
+  .enarte-filters__sub {
+    margin: 0.35rem 0 0;
+    color: #6b6560;
+    font-size: 0.9rem;
+  }
+
+  .enarte-filters__chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .enarte-filters__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.35rem;
+    padding: 0.4rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(196, 163, 90, 0.35);
+    background: rgba(196, 163, 90, 0.08);
+    color: #2a2620;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+
+  .enarte-filters__price {
+    margin-top: 1rem;
+    padding-top: 0.95rem;
+    border-top: 1px solid rgba(28, 25, 20, 0.06);
+  }
+
+  .enarte-filters__price-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #2a2620;
+  }
+
+  .enarte-filters__price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .enarte-filters__price-input {
+    min-height: 2.5rem;
+    min-width: 7.5rem;
+    flex: 1 1 7.5rem;
+    max-width: 11rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(28, 25, 20, 0.12);
+    background: #fff;
+    font-size: 0.88rem;
+    color: #1c1914;
+  }
+
+  .enarte-filters__price-input--open {
+    border-style: dashed;
+  }
+
+  .enarte-filters__price-sep {
+    color: #9a7b3c;
+    font-weight: 600;
+  }
+
+  .enarte-filters__price-btn {
+    min-height: 2.5rem;
+    padding: 0.45rem 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: #c4a35a;
+    color: #1c1914;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+
+  .enarte-filters__price-btn:hover {
+    background: #9a7b3c;
+    color: #fffcf8;
+  }
+
+  .enarte-filters__price-note {
+    margin: 0.55rem 0 0;
+    font-size: 0.78rem;
+    color: #8a837a;
+  }
+
+  .enarte-filters__hint {
+    margin: 0.85rem 0 0;
+    font-size: 0.8rem;
+    color: #8a837a;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 749px) {
+    .enarte-filters__inner {
+      padding: 1rem;
+      border-radius: 14px;
+    }
+
+    .enarte-filters__price-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .enarte-filters__price-input {
+      max-width: none;
+    }
+
+    .enarte-filters__price-sep {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ENARTE Premium Filters",
+  "tag": "section",
+  "class": "section-enarte-filters",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "تصفية المنتجات"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "صفِّ حسب الفئة والسعر واللون والخامة والأسلوب"
+    },
+    {
+      "type": "textarea",
+      "id": "hint",
+      "label": "Admin hint",
+      "default": "فعّل فلاتر Search & Discovery من لوحة التحكم لتظهر خيارات التصفية الحقيقية أسفل هذا الشريط."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "chip",
+      "name": "Filter chip",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Label",
+          "default": "الفئة"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ENARTE Premium Filters",
+      "blocks": [
+        { "type": "chip", "settings": { "label": "الفئة" } },
+        { "type": "chip", "settings": { "label": "السعر" } },
+        { "type": "chip", "settings": { "label": "اللون" } },
+        { "type": "chip", "settings": { "label": "الخامة" } },
+        { "type": "chip", "settings": { "label": "الأسلوب" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

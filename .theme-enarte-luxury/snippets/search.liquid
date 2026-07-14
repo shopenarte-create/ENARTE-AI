@@ -1,0 +1,147 @@
+{%- doc -%}
+  Renders the search action button.
+
+  @param {string} [style] - The style of the search action.
+  @param {string} [class] - Additional classes for the search action.
+  @param {string} [display_style] - The display style ('icon' or 'text').
+
+  @example
+  {% render 'search', style: 'default', class: 'custom-class', display_style: 'icon' %}
+{%- enddoc -%}
+
+{% unless style == 'none' %}
+  <search-button
+    class="search-action enarte-search-action{% if display_style == 'text' %} search-action--text{% endif %}{% if class != blank %} {{ class | strip }}{% endif %}"
+  >
+    <button
+      on:click="#search-modal/showDialog"
+      class="button-unstyled header-actions__action enarte-search-trigger{% if display_style == 'text' %} header-actions__text-style{% endif %}"
+      aria-label="{{ 'content.search_input_label' | t }}"
+      aria-haspopup="dialog"
+    >
+      <span class="enarte-search-pill" aria-hidden="true">
+        <span class="enarte-search-pill__icon">
+          {{ 'icon-search.svg' | inline_asset_content }}
+        </span>
+        <span class="enarte-search-pill__placeholder">ابحث عن منتج، فئة أو فكرة...</span>
+      </span>
+
+      <span class="{% if display_style == 'icon' %}hidden{% else %}mobile:hidden{% endif %} enarte-search-fallback-text">
+        {{ 'content.search' | t }}
+      </span>
+
+      <span class="svg-wrapper enarte-search-fallback-icon {% if display_style != 'icon' %}desktop:hidden{% endif %}">
+        {{ 'icon-search.svg' | inline_asset_content }}
+      </span>
+    </button>
+  </search-button>
+{% endunless %}
+
+{% stylesheet %}
+  .search-action {
+    --search-border-radius: var(--style-border-radius-inputs);
+    --search-border-width: var(--style-border-width-inputs);
+
+    display: flex;
+  }
+
+  .enarte-search-trigger {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .enarte-search-pill {
+    display: none;
+    align-items: center;
+    gap: 0.65rem;
+    width: min(34rem, 52vw);
+    max-width: 100%;
+    min-height: 2.85rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 999px;
+    border: 1px solid rgba(28, 25, 20, 0.1);
+    background: #fffcf8;
+    color: #6b6560;
+    box-shadow: 0 4px 18px rgba(28, 25, 20, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .enarte-search-trigger:hover .enarte-search-pill,
+  .enarte-search-trigger:focus-visible .enarte-search-pill {
+    border-color: rgba(196, 163, 90, 0.55);
+    box-shadow: 0 8px 24px rgba(154, 123, 60, 0.12);
+  }
+
+  .enarte-search-pill__icon {
+    display: inline-flex;
+    width: 1.1rem;
+    height: 1.1rem;
+    opacity: 0.7;
+  }
+
+  .enarte-search-pill__icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .enarte-search-pill__placeholder {
+    font-size: 0.92rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media screen and (min-width: 750px) {
+    .enarte-search-pill {
+      display: inline-flex;
+    }
+
+    .enarte-search-fallback-icon,
+    .enarte-search-fallback-text {
+      display: none !important;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .enarte-search-pill {
+      display: none;
+    }
+
+    .search-action--hidden-on-drawer {
+      display: none;
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    [data-menu-style='drawer'] .search-action--hidden-on-drawer {
+      display: none;
+    }
+
+    [data-menu-style='menu'] .search-action--hidden-on-menu {
+      display: none;
+    }
+  }
+
+  [data-menu-style='menu'] .header__column--left .search-action {
+    @media screen and (min-width: 750px) {
+      margin-inline: calc(var(--padding-lg) * -1);
+    }
+  }
+
+  .header__column--right .search-action {
+    @media screen and (min-width: 750px) {
+      margin-inline: calc(var(--gap-md) * -1) calc(var(--gap-xs) * -1);
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .header__column--right .search-action--text {
+      margin-inline: 0;
+    }
+
+    [data-menu-style='menu'] .header__column--left .search-action--text {
+      margin-inline: 0;
+    }
+  }
+{% endstylesheet %}

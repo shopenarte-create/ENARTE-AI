@@ -1,0 +1,353 @@
+{% doc %}
+  Renders global scripts, module preloads, and importmaps.
+  Product-heavy modules load only on product / cart / collection / search where needed.
+{% enddoc %}
+
+{%- liquid
+  assign t_name = template.name | default: template
+  assign is_product = false
+  assign is_collection = false
+  assign is_search = false
+  assign is_cart = false
+  assign is_index = false
+  if t_name == 'product' or request.page_type == 'product'
+    assign is_product = true
+  endif
+  if t_name == 'collection' or request.page_type == 'collection'
+    assign is_collection = true
+  endif
+  if t_name == 'search' or request.page_type == 'search'
+    assign is_search = true
+  endif
+  if t_name == 'cart' or request.page_type == 'cart'
+    assign is_cart = true
+  endif
+  if t_name == 'index' or request.page_type == 'index'
+    assign is_index = true
+  endif
+  assign needs_product_card = false
+  if is_product or is_collection or is_search or is_index or is_cart
+    assign needs_product_card = true
+  endif
+-%}
+
+<script type="importmap">
+  {
+    "imports": {
+      "@theme/overflow-list": "{{ 'overflow-list.js' | asset_url }}",
+      "@theme/component": "{{ 'component.js' | asset_url }}",
+      "@theme/dialog": "{{ 'dialog.js' | asset_url }}",
+      "@theme/events": "{{ 'events.js' | asset_url }}",
+      "@shopify/events": "https://cdn.shopify.com/storefront/standard-events.js",
+      "@theme/view-event-elements": "{{ 'view-event-elements.js' | asset_url }}",
+      "@theme/focus": "{{ 'focus.js' | asset_url }}",
+      "@theme/morph": "{{ 'morph.js' | asset_url }}",
+      "@theme/paginated-list": "{{ 'paginated-list.js' | asset_url }}",
+      "@theme/performance": "{{ 'performance.js' | asset_url }}",
+      "@theme/product-form": "{{ 'product-form.js' | asset_url }}",
+      "@theme/recently-viewed-products": "{{ 'recently-viewed-products.js' | asset_url }}",
+      "@theme/scrolling": "{{ 'scrolling.js' | asset_url }}",
+      "@theme/section-renderer": "{{ 'section-renderer.js' | asset_url }}",
+      "@theme/section-hydration": "{{ 'section-hydration.js' | asset_url }}",
+      "@theme/money-formatting": "{{ 'money-formatting.js' | asset_url }}",
+      "@theme/utilities": "{{ 'utilities.js' | asset_url }}",
+      "@theme/variant-picker": "{{ 'variant-picker.js' | asset_url }}",
+      "@theme/media-gallery": "{{ 'media-gallery.js' | asset_url }}",
+      "@theme/quick-add": "{{ 'quick-add.js' | asset_url }}",
+      "@theme/paginated-list-aspect-ratio": "{{ 'paginated-list-aspect-ratio.js' | asset_url }}",
+      "@theme/popover-polyfill": "{{ 'popover-polyfill.js' | asset_url }}",
+      "@theme/component-quantity-selector": "{{ 'component-quantity-selector.js' | asset_url }}",
+      "@theme/comparison-slider": "{{ 'comparison-slider.js' | asset_url }}",
+      "@theme/sticky-add-to-cart": "{{ 'sticky-add-to-cart.js' | asset_url }}",
+      "@theme/fly-to-cart": "{{ 'fly-to-cart.js' | asset_url }}",
+      "@theme/scroll-container": "{{ 'scroll-container.js' | asset_url }}",
+      "@theme/theme-drawer": "{{ 'theme-drawer.js' | asset_url }}"
+    }
+  }
+</script>
+
+<script
+  src="{{ 'standard-actions-override.js' | asset_url }}"
+  type="module"
+></script>
+
+<script
+  src="{{ 'page-view-event.js' | asset_url }}"
+  type="module"
+  defer
+></script>
+
+{%- if settings.page_transition_enabled or settings.transition_to_main_product -%}
+  <script
+    src="{{ 'view-transitions.js' | asset_url }}"
+    async
+    blocking="render"
+  ></script>
+{%- endif -%}
+
+<link
+  rel="modulepreload"
+  href="{{ 'utilities.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ 'component.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ 'section-renderer.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ 'morph.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ 'events.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ 'focus.js' | asset_url }}"
+  fetchpriority="low"
+>
+<link
+  rel="modulepreload"
+  href="{{ 'scrolling.js' | asset_url }}"
+  fetchpriority="low"
+>
+
+{%- if is_collection or is_search -%}
+  <link
+    rel="modulepreload"
+    href="{{ 'paginated-list-aspect-ratio.js' | asset_url }}"
+    fetchpriority="low"
+  >
+  <link
+    rel="modulepreload"
+    href="{{ 'paginated-list.js' | asset_url }}"
+    fetchpriority="low"
+  >
+{%- endif -%}
+
+<script
+  src="{{ 'popover-polyfill.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+<script
+  src="{{ 'overflow-list.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+<script
+  src="{{ 'dialog.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+<script
+  src="{{ 'floating-panel.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+<script
+  src="{{ 'anchored-popover.js' | asset_url }}"
+  type="module"
+  fetchpriority="low"
+></script>
+<script
+  src="{{ 'auto-close-details.js' | asset_url }}"
+  defer="defer"
+></script>
+
+{%- if needs_product_card -%}
+  <script
+    src="{{ 'product-card.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'product-price.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'slideshow.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  {%- if settings.quick_add or settings.mobile_quick_add -%}
+    <script
+      src="{{ 'quick-add.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+    <script
+      src="{{ 'product-form.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+    <script
+      src="{{ 'fly-to-cart.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+    <script
+      src="{{ 'component-quantity-selector.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+  {%- endif -%}
+{%- endif -%}
+
+{%- if settings.show_add_discount_code -%}
+  <script
+    src="{{ 'cart-discount.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+{%- endif -%}
+
+{%- if is_product -%}
+  <script
+    src="{{ 'variant-picker.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'product-price.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'product-sku.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'product-inventory.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'media.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'media-gallery.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'show-more.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'rte-formatter.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'volume-pricing.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'price-per-item.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'volume-pricing-info.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'sticky-add-to-cart.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'accordion-custom.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script type="module">
+    import { RecentlyViewed } from '@theme/recently-viewed-products';
+    RecentlyViewed.addProduct('{{ product.id }}');
+  </script>
+{%- endif -%}
+
+{%- if is_collection or is_search -%}
+  <script
+    src="{{ 'paginated-list-aspect-ratio.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'paginated-list.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+  <script
+    src="{{ 'show-more.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+{%- endif -%}
+
+{%- comment -%} Layered slideshow / video background only when those section types may appear {%- endcomment -%}
+{%- unless is_index -%}
+  {%- if request.design_mode or is_product -%}
+    <script
+      src="{{ 'layered-slideshow.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+    <script
+      src="{{ 'video-background.js' | asset_url }}"
+      type="module"
+      fetchpriority="low"
+    ></script>
+  {%- endif -%}
+{%- endunless -%}
+
+{%- if localization.available_countries.size > 1 or localization.available_languages.size > 1 -%}
+  <script
+    src="{{ 'localization.js' | asset_url }}"
+    type="module"
+    fetchpriority="low"
+  ></script>
+{%- endif -%}
+
+<script>
+  const Theme = {
+    translations: {
+      placeholder_image: `{{ 'content.placeholder_image' | t }}`,
+      added: `{{ 'actions.added' | t }}`,
+      recipient_form_fields_visible: `{{ 'content.recipient_form_fields_visible' | t }}`,
+      recipient_form_fields_hidden: `{{ 'content.recipient_form_fields_hidden' | t }}`,
+      recipient_form_error: `{{ 'content.recipient_form_error' | t }}`,
+      items_added_to_cart_one: `{{ 'content.items_added_to_cart.one' | t }}`,
+      items_added_to_cart_other: `{{ 'content.items_added_to_cart.other' | t }}`,
+      cart_count: `{{ 'accessibility.cart_count' | t }}`,
+    },
+    routes: {
+      cart_add_url: '{{ routes.cart_add_url | append: '.js' }}',
+      cart_change_url: '{{ routes.cart_change_url }}',
+      cart_update_url: '{{ routes.cart_update_url }}',
+      cart_url: '{{ routes.cart_url }}',
+      predictive_search_url: '{{ routes.predictive_search_url }}',
+      search_url: '{{ routes.search_url }}',
+    },
+    template: {
+      name: '{{ template }}',
+    },
+  };
+</script>

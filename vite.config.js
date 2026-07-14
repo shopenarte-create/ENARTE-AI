@@ -37,7 +37,9 @@ if (host === "localhost") {
 
 export default defineConfig({
   server: {
-    allowedHosts: [host],
+    // Allow the configured app host and any Cloudflare quick-tunnel hostname
+    // so both ENARTE AI DEV and ENARTE SHOP can load the embedded app.
+    allowedHosts: [host, ".trycloudflare.com"],
     cors: {
       preflightContinue: true,
     },

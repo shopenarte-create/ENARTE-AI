@@ -1,0 +1,21 @@
+{
+  "enarte_try_embed": {
+    "type": "shopify://apps/enarte-ai/blocks/enarte-try-embed/019f4cc2-6806-7505-ba0a-8cf34e6bb189",
+    "disabled": false,
+    "settings": {
+      "button_label": "✨ جربها الآن",
+      "hint_text": "التقط صورة غرفتك لتركيب هذه الإنارة",
+      "show_mode": "lighting",
+      "app_base_url": "https://saints-between-manufacturers-venice.trycloudflare.com"
+    }
+  },
+  "enarte_home_try_embed": {
+    "type": "shopify://apps/enarte-ai/blocks/home-try-embed/019f4cc2-6806-7505-ba0a-8cf34e6bb189",
+    "disabled": false,
+    "settings": {
+      "button_label": "✨ جربها في غرفتك",
+      "hint_text": "التقط صورة غرفتك وسنقترح أفضل 3 إنارات مناسبة",
+      "app_base_url": "https://saints-between-manufacturers-venice.trycloudflare.com"
+    }
+  }
+}

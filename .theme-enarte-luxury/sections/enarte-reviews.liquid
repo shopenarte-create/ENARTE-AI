@@ -1,0 +1,574 @@
+{% comment %}
+  ENARTE store customer reviews — testimonials + customer submit form.
+{% endcomment %}
+
+<section class="enarte-reviews" id="enarte-reviews">
+  <div class="page-width enarte-reviews__inner">
+    {% if section.settings.heading != blank %}
+      <h2 class="enarte-reviews__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+    {% if section.settings.subheading != blank %}
+      <p class="enarte-reviews__sub">{{ section.settings.subheading }}</p>
+    {% endif %}
+
+    {% if section.settings.show_store_score %}
+      <div class="enarte-reviews__score" aria-label="تقييم المتجر {{ section.settings.store_rating }} من 5">
+        <div class="enarte-reviews__stars" aria-hidden="true">
+          {% assign store_rating_num = section.settings.store_rating | default: 4.9 | times: 1.0 %}
+          {% assign filled = store_rating_num | floor %}
+          {% for i in (1..5) %}
+            <span class="enarte-reviews__star{% if i <= filled %} is-filled{% endif %}">★</span>
+          {% endfor %}
+        </div>
+        <p class="enarte-reviews__score-text">
+          <strong>{{ section.settings.store_rating | default: 4.9 }}</strong>
+          / 5
+          {% if section.settings.store_review_count != blank %}
+            <span class="enarte-reviews__score-count">({{ section.settings.store_review_count }} تقييم)</span>
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+
+    <div class="enarte-reviews__grid">
+      {% for block in section.blocks %}
+        {% assign stars = block.settings.rating | default: 5 %}
+        <article class="enarte-reviews__card" {{ block.shopify_attributes }}>
+          <div class="enarte-reviews__card-stars" aria-label="تقييم {{ stars }} من 5">
+            {% for i in (1..5) %}
+              <span class="enarte-reviews__star{% if i <= stars %} is-filled{% endif %}" aria-hidden="true">★</span>
+            {% endfor %}
+          </div>
+          {% if block.settings.body != blank %}
+            <p class="enarte-reviews__quote">“{{ block.settings.body }}”</p>
+          {% endif %}
+          <div class="enarte-reviews__meta">
+            {% if block.settings.author != blank %}
+              <p class="enarte-reviews__author">{{ block.settings.author }}</p>
+            {% endif %}
+            {% if block.settings.location != blank %}
+              <p class="enarte-reviews__location">{{ block.settings.location }}</p>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    {% if section.settings.show_form %}
+      <div class="enarte-reviews__form-wrap">
+        {% if section.settings.form_heading != blank %}
+          <h3 class="enarte-reviews__form-heading">{{ section.settings.form_heading }}</h3>
+        {% endif %}
+        {% if section.settings.form_subheading != blank %}
+          <p class="enarte-reviews__form-sub">{{ section.settings.form_subheading }}</p>
+        {% endif %}
+
+        {% form 'contact', id: 'EnarteReviewForm', class: 'enarte-reviews__form' %}
+          <input type="hidden" name="contact[tags]" value="customer-review">
+          <input type="hidden" name="contact[subject]" value="تقييم عميل جديد — ENARTE">
+
+          {% if form.posted_successfully? %}
+            <p class="enarte-reviews__form-success" role="status">
+              {{ section.settings.success_text | default: 'شكراً لك! استلمنا تقييمك وسيظهر بعد المراجعة.' }}
+            </p>
+          {% else %}
+            {% if form.errors %}
+              <p class="enarte-reviews__form-error" role="alert">
+                {{ form.errors | default_errors }}
+              </p>
+            {% endif %}
+
+            <fieldset class="enarte-reviews__fieldset">
+              <legend class="enarte-reviews__label">تقييمك</legend>
+              <div class="enarte-reviews__rate" role="radiogroup" aria-label="عدد النجوم">
+                {% for i in (1..5) %}
+                  <label class="enarte-reviews__rate-opt">
+                    <input
+                      type="radio"
+                      name="contact[تقييم النجوم]"
+                      value="{{ i }}"
+                      {% if i == 5 %}checked{% endif %}
+                      required
+                    >
+                    <span aria-hidden="true">★</span>
+                    <span class="visually-hidden">{{ i }} نجوم</span>
+                  </label>
+                {% endfor %}
+              </div>
+            </fieldset>
+
+            <div class="enarte-reviews__fields">
+              <label class="enarte-reviews__field">
+                <span class="enarte-reviews__label">الاسم</span>
+                <input
+                  type="text"
+                  name="contact[name]"
+                  class="enarte-reviews__input"
+                  autocomplete="name"
+                  required
+                  placeholder="اسمك"
+                >
+              </label>
+
+              <label class="enarte-reviews__field">
+                <span class="enarte-reviews__label">المدينة</span>
+                <input
+                  type="text"
+                  name="contact[المدينة]"
+                  class="enarte-reviews__input"
+                  autocomplete="address-level2"
+                  placeholder="عمّان"
+                >
+              </label>
+
+              <label class="enarte-reviews__field enarte-reviews__field--full">
+                <span class="enarte-reviews__label">البريد الإلكتروني</span>
+                <input
+                  type="email"
+                  name="contact[email]"
+                  class="enarte-reviews__input"
+                  autocomplete="email"
+                  required
+                  placeholder="name@email.com"
+                >
+              </label>
+
+              <label class="enarte-reviews__field enarte-reviews__field--full">
+                <span class="enarte-reviews__label">نص التقييم</span>
+                <textarea
+                  name="contact[body]"
+                  class="enarte-reviews__textarea"
+                  rows="4"
+                  required
+                  maxlength="600"
+                  placeholder="شاركنا تجربتك مع ENARTE..."
+                ></textarea>
+              </label>
+            </div>
+
+            <button type="submit" class="enarte-reviews__submit">
+              {{ section.settings.submit_label | default: 'أرسل تقييمك' }}
+            </button>
+            {% if section.settings.form_note != blank %}
+              <p class="enarte-reviews__note">{{ section.settings.form_note }}</p>
+            {% endif %}
+          {% endif %}
+        {% endform %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<script>
+  (function () {
+    var root = document.getElementById('enarte-reviews');
+    if (!root) return;
+    var rate = root.querySelector('.enarte-reviews__rate');
+    if (!rate) return;
+
+    function paint(value) {
+      var opts = rate.querySelectorAll('.enarte-reviews__rate-opt');
+      opts.forEach(function (opt, index) {
+        var starValue = index + 1;
+        opt.classList.toggle('is-active', starValue <= value);
+      });
+    }
+
+    rate.addEventListener('change', function (event) {
+      if (!event.target || !event.target.value) return;
+      paint(Number(event.target.value));
+    });
+
+    var checked = rate.querySelector('input:checked');
+    paint(checked ? Number(checked.value) : 5);
+  })();
+</script>
+
+{% stylesheet %}
+  .enarte-reviews {
+    padding: clamp(2.5rem, 5vw, 3.75rem) 0;
+    background: linear-gradient(180deg, #fffdf9 0%, #f7f1e8 100%);
+  }
+  .enarte-reviews__inner {
+    max-width: 76rem;
+  }
+  .enarte-reviews__heading {
+    margin: 0 0 0.4rem;
+    text-align: center;
+    font-size: clamp(1.45rem, 2.5vw, 2rem);
+    font-weight: 700;
+    color: #1c1914;
+  }
+  .enarte-reviews__sub {
+    margin: 0 auto 1.25rem;
+    max-width: 36rem;
+    text-align: center;
+    color: rgba(28, 25, 20, 0.65);
+    line-height: 1.55;
+    font-size: 0.95rem;
+  }
+  .enarte-reviews__score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1.75rem;
+  }
+  .enarte-reviews__stars,
+  .enarte-reviews__card-stars {
+    display: inline-flex;
+    gap: 0.15rem;
+    color: #c4a574;
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  .enarte-reviews__star {
+    color: rgba(196, 165, 116, 0.28);
+  }
+  .enarte-reviews__star.is-filled {
+    color: #c4a574;
+  }
+  .enarte-reviews__score-text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #1c1914;
+  }
+  .enarte-reviews__score-count {
+    color: rgba(28, 25, 20, 0.55);
+    font-weight: 400;
+  }
+  .enarte-reviews__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.1rem;
+  }
+  .enarte-reviews__card {
+    background: #ffffff;
+    border: 1px solid rgba(28, 25, 20, 0.06);
+    border-radius: 16px;
+    padding: 1.25rem 1.15rem 1.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    min-height: 100%;
+  }
+  .enarte-reviews__quote {
+    margin: 0;
+    color: #2a2620;
+    line-height: 1.65;
+    font-size: 0.92rem;
+    flex: 1;
+  }
+  .enarte-reviews__meta {
+    margin-top: 0.25rem;
+  }
+  .enarte-reviews__author {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #1c1914;
+  }
+  .enarte-reviews__location {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: rgba(28, 25, 20, 0.55);
+  }
+
+  .enarte-reviews__form-wrap {
+    margin-top: 2rem;
+    padding: 1.4rem 1.25rem 1.5rem;
+    background: #ffffff;
+    border: 1px solid rgba(28, 25, 20, 0.06);
+    border-radius: 18px;
+    box-shadow: 0 10px 28px rgba(28, 25, 20, 0.05);
+    max-width: 40rem;
+    margin-inline: auto;
+  }
+  .enarte-reviews__form-heading {
+    margin: 0 0 0.35rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1c1914;
+  }
+  .enarte-reviews__form-sub {
+    margin: 0 0 1.15rem;
+    text-align: center;
+    color: rgba(28, 25, 20, 0.6);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .enarte-reviews__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .enarte-reviews__fieldset {
+    margin: 0;
+    padding: 0;
+    border: none;
+    text-align: center;
+  }
+  .enarte-reviews__label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1c1914;
+  }
+  .enarte-reviews__rate {
+    display: inline-flex;
+    gap: 0.2rem;
+    direction: ltr;
+  }
+  .enarte-reviews__rate-opt {
+    cursor: pointer;
+    font-size: 1.65rem;
+    line-height: 1;
+    color: rgba(196, 165, 116, 0.28);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .enarte-reviews__rate-opt input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .enarte-reviews__rate-opt.is-active,
+  .enarte-reviews__rate-opt:hover {
+    color: #c4a574;
+  }
+  .enarte-reviews__rate-opt:hover {
+    transform: scale(1.08);
+  }
+  .enarte-reviews__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .enarte-reviews__field--full {
+    grid-column: 1 / -1;
+  }
+  .enarte-reviews__input,
+  .enarte-reviews__textarea {
+    width: 100%;
+    border: 1px solid rgba(28, 25, 20, 0.12);
+    border-radius: 10px;
+    background: #faf7f2;
+    color: #1c1914;
+    padding: 0.7rem 0.85rem;
+    font: inherit;
+    font-size: 0.92rem;
+  }
+  .enarte-reviews__input:focus,
+  .enarte-reviews__textarea:focus {
+    outline: 2px solid rgba(196, 163, 90, 0.45);
+    outline-offset: 1px;
+    background: #fff;
+  }
+  .enarte-reviews__textarea {
+    resize: vertical;
+    min-height: 6.5rem;
+  }
+  .enarte-reviews__submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.85rem;
+    border: none;
+    border-radius: 10px;
+    background: #c4a35a;
+    color: #1c1914;
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .enarte-reviews__submit:hover {
+    background: #b8934a;
+    transform: translateY(-1px);
+  }
+  .enarte-reviews__note {
+    margin: 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(28, 25, 20, 0.55);
+    line-height: 1.45;
+  }
+  .enarte-reviews__form-success {
+    margin: 0;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(196, 163, 90, 0.14);
+    color: #1c1914;
+    font-weight: 600;
+    line-height: 1.55;
+  }
+  .enarte-reviews__form-error {
+    margin: 0;
+    color: #8a2f2f;
+    font-size: 0.88rem;
+  }
+
+  @media (max-width: 989px) {
+    .enarte-reviews__grid {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 16px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding-inline: 2px;
+      scrollbar-width: none;
+    }
+    .enarte-reviews__grid::-webkit-scrollbar {
+      display: none;
+    }
+    .enarte-reviews__card {
+      flex: 0 0 min(300px, 82vw);
+      width: min(300px, 82vw);
+      scroll-snap-align: start;
+    }
+  }
+  @media (max-width: 640px) {
+    .enarte-reviews__fields {
+      grid-template-columns: 1fr;
+    }
+    .enarte-reviews__form-wrap {
+      padding: 1.15rem 1rem 1.25rem;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "ENARTE Reviews",
+  "tag": "section",
+  "class": "section-enarte-reviews",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "آراء عملاء ENARTE"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "تقييمات حقيقية من عملائنا في الأردن لتجربة الإضاءة الفاخرة."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_store_score",
+      "label": "Show store score",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "store_rating",
+      "label": "Store rating",
+      "default": "4.9"
+    },
+    {
+      "type": "text",
+      "id": "store_review_count",
+      "label": "Store review count label",
+      "default": "180+"
+    },
+    {
+      "type": "header",
+      "content": "Customer review form"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_form",
+      "label": "Show review form",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "form_heading",
+      "label": "Form heading",
+      "default": "أضف تقييمك"
+    },
+    {
+      "type": "textarea",
+      "id": "form_subheading",
+      "label": "Form subheading",
+      "default": "شاركنا تجربتك مع ENARTE — تقييمك يساعدنا ويساعد غيرك."
+    },
+    {
+      "type": "text",
+      "id": "submit_label",
+      "label": "Submit button",
+      "default": "أرسل تقييمك"
+    },
+    {
+      "type": "text",
+      "id": "success_text",
+      "label": "Success message",
+      "default": "شكراً لك! استلمنا تقييمك وسيظهر بعد المراجعة."
+    },
+    {
+      "type": "text",
+      "id": "form_note",
+      "label": "Form note",
+      "default": "يظهر التقييم على الموقع بعد مراجعة فريق ENARTE."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "settings": [
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Stars",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "type": "textarea",
+          "id": "body",
+          "label": "Review text",
+          "default": "الثريا وصلت بسرعة والجودة ممتازة. إضاءة غرفة الجلوس صارت فخمة جداً."
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Customer name",
+          "default": "سارة م."
+        },
+        {
+          "type": "text",
+          "id": "location",
+          "label": "Location",
+          "default": "عمّان"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "ENARTE Reviews",
+      "blocks": [
+        {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "body": "الثريا وصلت بسرعة والجودة ممتازة. إضاءة غرفة الجلوس صارت فخمة جداً.",
+            "author": "سارة م.",
+            "location": "عمّان"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

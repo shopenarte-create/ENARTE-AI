@@ -1,0 +1,46 @@
+{%- comment -%}
+  Critical first-paint styles — kill white blank screen before base.css arrives.
+{%- endcomment -%}
+<style id="enarte-critical-css">
+  html{background:#f7f3ec;overflow-x:clip;max-width:100%}
+  body{margin:0;background:#f7f3ec;color:#1c1914;font-family:"Segoe UI",Tahoma,sans-serif;overflow-x:clip;max-width:100%}
+  .page-wrapper{min-height:100vh;background:#f7f3ec}
+  #header-group{background:rgba(247,243,236,.96)}
+  .enarte-luxury-hero{
+    position:relative;min-height:min(78vh,720px);background:#1c1914;color:#fff;
+    display:flex;align-items:flex-end;overflow:hidden
+  }
+  @media (max-width:749px){
+    .enarte-luxury-hero{min-height:min(46vh,360px)}
+    .enarte-luxury-hero__content{padding:1.35rem 1rem 2.25rem}
+  }
+  .enarte-luxury-hero__media{position:absolute;inset:0}
+  .enarte-luxury-hero__slide{position:absolute;inset:0;opacity:0}
+  .enarte-luxury-hero__slide.is-active{opacity:1}
+  .enarte-luxury-hero__img{width:100%;height:100%;object-fit:cover;display:block}
+  .enarte-luxury-hero__content{position:relative;z-index:3;padding:2rem 1.25rem 3rem}
+  .enarte-luxury-hero__title{margin:0 0 .5rem;font-size:clamp(1.75rem,6vw,3.25rem);line-height:1.15;font-weight:600}
+  .enarte-luxury-hero__sub{margin:0 0 1rem;max-width:36rem;opacity:.9}
+  .enarte-reveal{opacity:1;transform:none}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+<link rel="dns-prefetch" href="https://images.unsplash.com">
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+  media="print"
+  onload="this.media='all'"
+>
+<noscript>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+  >
+</noscript>
+
+{{ 'overflow-list.css' | asset_url | preload_tag: as: 'style' }}
+{{ 'base.css' | asset_url | stylesheet_tag: preload: true }}
+{{ 'enarte-brand.css' | asset_url | stylesheet_tag }}

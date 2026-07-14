@@ -1,0 +1,106 @@
+{% comment %}
+  ENARTE AI product section app block (optional).
+{% endcomment %}
+
+{% liquid
+  assign show_enarte = false
+  if block.settings.show_mode == 'all'
+    assign show_enarte = true
+  else
+    assign blob = product.title | append: ' ' | append: product.type | append: ' ' | append: product.handle | downcase
+    for tag in product.tags
+      assign blob = blob | append: ' ' | append: tag | downcase
+    endfor
+    for collection in product.collections
+      assign blob = blob | append: ' ' | append: collection.title | append: ' ' | append: collection.handle | downcase
+    endfor
+    if blob contains 'chandelier' or blob contains 'pendant' or blob contains 'led' or blob contains 'lighting' or blob contains 'spot' or blob contains 'ثريا' or blob contains 'إنارة' or blob contains 'انارة' or blob contains 'إضاءة' or blob contains 'اضاءة' or blob contains 'أبليك' or blob contains 'ابليك' or blob contains 'chandeliers' or blob contains 'led-pendants' or blob contains 'led_pendants'
+      assign show_enarte = true
+    endif
+  endif
+%}
+
+{% if show_enarte %}
+  {% assign collection_title = '' %}
+  {% if product.collections.first %}
+    {% assign collection_title = product.collections.first.title %}
+  {% endif %}
+
+  {% assign product_image = '' %}
+  {% if product.featured_image %}
+    {% assign product_image = product.featured_image | image_url: width: 900 %}
+  {% elsif product.images.first %}
+    {% assign product_image = product.images.first | image_url: width: 900 %}
+  {% endif %}
+
+  <div
+    class="enarte-try-wrap"
+    data-enarte-try-root
+    data-show-mode="{{ block.settings.show_mode | escape }}"
+    data-app-url="{{ block.settings.app_base_url | strip | escape }}"
+    data-shop="{{ shop.permanent_domain | escape }}"
+    data-product-id="{{ product.id }}"
+    data-product-title="{{ product.title | escape }}"
+    data-product-image="{{ product_image | escape }}"
+    data-product-price="{{ product.selected_or_first_available_variant.price | money_without_currency | strip | escape }}"
+    data-product-currency="{{ cart.currency.iso_code | default: shop.currency | escape }}"
+    data-product-url="{{ shop.url | append: product.url | escape }}"
+    data-product-collection="{{ collection_title | escape }}"
+  >
+    <button
+      type="button"
+      class="enarte-try-button"
+      data-enarte-try-button
+      data-label="{{ block.settings.button_label | escape }}"
+    >
+      {{ block.settings.button_label }}
+    </button>
+    <p class="enarte-try-hint">{{ block.settings.hint_text }}</p>
+  </div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "ENARTE Try Now",
+  "target": "section",
+  "javascript": "enarte-boot.js",
+  "templates": ["product"],
+  "settings": [
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "✨ جربها الآن"
+    },
+    {
+      "type": "text",
+      "id": "hint_text",
+      "label": "Hint text",
+      "default": "التقط صورة غرفتك لتركيب هذه الإنارة"
+    },
+    {
+      "type": "select",
+      "id": "show_mode",
+      "label": "Show on",
+      "default": "lighting",
+      "options": [
+        {
+          "value": "lighting",
+          "label": "Chandeliers / LED lighting only"
+        },
+        {
+          "value": "all",
+          "label": "All products"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "app_base_url",
+      "label": "ENARTE app base URL",
+      "info": "Storefront uses same-origin /apps/enarte-ai automatically. Override only for non-Shopify dev hosts.",
+      "default": "https://saints-between-manufacturers-venice.trycloudflare.com"
+    }
+  ]
+}
+{% endschema %}
