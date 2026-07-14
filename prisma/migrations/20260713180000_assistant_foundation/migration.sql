@@ -1,4 +1,4 @@
-﻿-- CreateTable
+-- CreateTable
 CREATE TABLE IF NOT EXISTS "assistant_conversation" (
     "id" TEXT NOT NULL,
     "shop" TEXT NOT NULL,
