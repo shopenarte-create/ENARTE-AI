@@ -58,7 +58,7 @@ async function getAdmin(shopHint) {
     return { ...(await unauthenticated.admin(shop)), shop };
   } catch {
     const { getClientCredentialsAdmin } = await import(
-      "./shopify-admin-client-credentials.server.js"
+      "../shopify-admin-client-credentials.server.js"
     );
     return getClientCredentialsAdmin(shop);
   }
