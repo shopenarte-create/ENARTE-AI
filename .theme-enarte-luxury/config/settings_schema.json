@@ -2116,5 +2116,39 @@
         "default": "equal-width-buttons"
       }
     ]
+  },
+  {
+    "name": "ENARTE App",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "روابط تحميل تطبيق ENARTE. حالياً يفتح نسخة الويب؛ عند نشر المتاجر ضع روابط App Store و Google Play."
+      },
+      {
+        "type": "text",
+        "id": "enarte_app_download_label",
+        "label": "نص زر التحميل",
+        "default": "حمّل التطبيق"
+      },
+      {
+        "type": "text",
+        "id": "enarte_web_app_url",
+        "label": "رابط تطبيق الويب (حالياً)",
+        "default": "https://enarte-ai-production.up.railway.app/app",
+        "info": "يفتح هذا الرابط حتى تتوفر روابط المتاجر"
+      },
+      {
+        "type": "text",
+        "id": "enarte_app_store_url",
+        "label": "رابط App Store (iOS)",
+        "info": "مثال: https://apps.apple.com/app/idXXXXXXXX"
+      },
+      {
+        "type": "text",
+        "id": "enarte_play_store_url",
+        "label": "رابط Google Play (Android)",
+        "info": "مثال: https://play.google.com/store/apps/details?id=com.enarte.mobile"
+      }
+    ]
   }
 ]

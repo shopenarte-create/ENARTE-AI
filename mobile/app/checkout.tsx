@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -10,20 +10,19 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { WebView, type WebViewNavigation } from "react-native-webview";
+import { AppBrowser } from "@/src/components/AppBrowser";
 import { useCart } from "@/src/cart/CartContext";
 import { colors, radii, spacing } from "@/src/theme";
 
 /**
- * Checkout stays inside the app via WebView (top-level navigation).
- * Note: X-Frame-Options DENY only blocks iframes — not an in-app WebView.
+ * Checkout stays inside the app via WebView (native).
+ * On web, Shopify checkout opens top-level (iframe blocked by XFO).
  */
 export default function CheckoutScreen() {
   const router = useRouter();
   const { clear } = useCart();
   const { url } = useLocalSearchParams<{ url?: string }>();
-  const webRef = useRef<WebView>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Platform.OS !== "web");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -46,14 +45,12 @@ export default function CheckoutScreen() {
     );
   }
 
-  function onNavChange(nav: WebViewNavigation) {
-    if (nav.url && looksLikeThankYou(nav.url)) {
-      setDone(true);
-    }
-  }
-
   async function openExternalFallback() {
     if (!checkoutUrl) return;
+    if (Platform.OS === "web") {
+      window.location.assign(checkoutUrl);
+      return;
+    }
     await WebBrowser.openBrowserAsync(checkoutUrl, {
       enableBarCollapsing: true,
       toolbarColor: colors.ivory,
@@ -100,6 +97,26 @@ export default function CheckoutScreen() {
     );
   }
 
+  if (Platform.OS === "web") {
+    return (
+      <SafeAreaView style={styles.safe} edges={["bottom"]}>
+        <Stack.Screen options={{ title: "الدفع" }} />
+        <View style={styles.center}>
+          <Text style={styles.title}>متابعة الدفع الآمن</Text>
+          <Text style={styles.body}>
+            سيتم فتح صفحة الدفع لمتجر ENARTE في هذه النافذة.
+          </Text>
+          <Pressable style={styles.btn} onPress={openExternalFallback}>
+            <Text style={styles.btnText}>متابعة للدفع</Text>
+          </Pressable>
+          <Pressable onPress={() => router.back()}>
+            <Text style={styles.link}>الرجوع للسلة</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <Stack.Screen
@@ -124,7 +141,6 @@ export default function CheckoutScreen() {
             onPress={() => {
               setLoadError(null);
               setLoading(true);
-              webRef.current?.reload();
             }}
           >
             <Text style={styles.btnText}>إعادة المحاولة</Text>
@@ -137,21 +153,17 @@ export default function CheckoutScreen() {
           </Pressable>
         </View>
       ) : (
-        <WebView
-          ref={webRef}
+        <AppBrowser
           source={{ uri: checkoutUrl }}
           style={styles.web}
           onLoadStart={() => setLoading(true)}
           onLoadEnd={() => setLoading(false)}
-          onNavigationStateChange={onNavChange}
+          onNavigationStateChange={(nav) => {
+            if (nav.url && looksLikeThankYou(nav.url)) setDone(true);
+          }}
           onError={() => {
             setLoading(false);
             setLoadError("تعذر تحميل صفحة الدفع داخل التطبيق.");
-          }}
-          onHttpError={(e) => {
-            if (e.nativeEvent.statusCode >= 500) {
-              setLoadError("خادم الدفع غير متاح حالياً. حاول لاحقاً.");
-            }
           }}
           startInLoadingState
           javaScriptEnabled
@@ -160,11 +172,6 @@ export default function CheckoutScreen() {
           thirdPartyCookiesEnabled
           setSupportMultipleWindows={false}
           allowsBackForwardNavigationGestures
-          userAgent={
-            Platform.OS === "android"
-              ? "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 EnarteApp/1.0"
-              : undefined
-          }
         />
       )}
 

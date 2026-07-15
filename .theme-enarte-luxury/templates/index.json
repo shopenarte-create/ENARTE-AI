@@ -18,6 +18,8 @@
         "subheading": "مجموعات حصرية من الثريات والإضاءة الفاخرة لمساحات تعكس ذوقك.",
         "button_label": "تسوق الآن",
         "button_link": "shopify://collections/all",
+        "show_app_download": true,
+        "app_download_label": "حمّل التطبيق",
         "interval": 5000,
         "min_height": 78,
         "image_1": "",
@@ -663,7 +665,9 @@
         "phone": "00962782404023",
         "call_label": "📞 اتصل الآن",
         "whatsapp_label": "🟢 تواصل عبر واتساب",
-        "whatsapp_url": "https://wa.me/962782404023"
+        "whatsapp_url": "https://wa.me/962782404023",
+        "facebook_url": "https://www.facebook.com/share/1BNcnyMsjn/",
+        "instagram_url": "https://www.instagram.com/enartejo/"
       }
     },
     "section_rJXrze": {

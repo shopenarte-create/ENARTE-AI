@@ -1,0 +1,136 @@
+{% comment %}
+  ENARTE app download CTA.
+  Prefer store URLs when set; otherwise open the web app (/app).
+  Usage: {% render 'enarte-app-download', variant: 'hero' %}
+{% endcomment %}
+
+{%- liquid
+  assign app_label = label | default: settings.enarte_app_download_label | default: 'حمّل التطبيق'
+  assign ios_url = settings.enarte_app_store_url | strip
+  assign android_url = settings.enarte_play_store_url | strip
+  assign web_url = settings.enarte_web_app_url | default: 'https://enarte-ai-production.up.railway.app/app' | strip
+  assign variant_name = variant | default: 'default'
+  assign show_when_empty = show_when_empty | default: true
+  assign default_href = web_url
+  if android_url != blank
+    assign default_href = android_url
+  elsif ios_url != blank
+    assign default_href = ios_url
+  endif
+-%}
+
+{%- if ios_url != blank or android_url != blank or web_url != blank or show_when_empty -%}
+  <a
+    href="{{ default_href }}"
+    class="enarte-app-download enarte-app-download--{{ variant_name }}"
+    data-enarte-app-download
+    data-ios-url="{{ ios_url | escape }}"
+    data-android-url="{{ android_url | escape }}"
+    data-web-url="{{ web_url | escape }}"
+    rel="noopener noreferrer"
+    target="_blank"
+    aria-label="{{ app_label | escape }}"
+  >
+    <span class="enarte-app-download__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7">
+        <rect x="7" y="2.5" width="10" height="19" rx="2.2"></rect>
+        <path d="M11 5.2h2" stroke-linecap="round"></path>
+        <circle cx="12" cy="17.6" r="0.9" fill="currentColor" stroke="none"></circle>
+      </svg>
+    </span>
+    <span class="enarte-app-download__text">{{ app_label }}</span>
+  </a>
+{%- endif -%}
+
+{% stylesheet %}
+  .enarte-app-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-radius: 999px;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+  }
+
+  .enarte-app-download:hover {
+    transform: translateY(-1px);
+  }
+
+  .enarte-app-download__icon {
+    display: grid;
+    place-items: center;
+    line-height: 0;
+  }
+
+  .enarte-app-download--hero {
+    margin-top: 0;
+    padding: 0.9rem 1.55rem;
+    min-width: 9.5rem;
+    color: #1c1914;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+  }
+
+  .enarte-app-download--hero:hover {
+    background: #c4a35a;
+    border-color: #c4a35a;
+    color: #1c1914;
+  }
+
+  .enarte-app-download--footer,
+  .enarte-app-download--default {
+    padding: 0.85rem 1.45rem;
+    color: #f7f3ec;
+    background: #1c1914;
+    border: 1px solid #c4a35a;
+  }
+
+  .enarte-app-download--footer:hover,
+  .enarte-app-download--default:hover {
+    background: #c4a35a;
+    color: #1c1914;
+  }
+{% endstylesheet %}
+
+<script>
+  (function () {
+    if (window.__enarteAppDownloadBound) return;
+    window.__enarteAppDownloadBound = true;
+
+    function pickUrl(iosUrl, androidUrl, webUrl) {
+      var ua = navigator.userAgent || navigator.vendor || '';
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isAndroid = /Android/i.test(ua);
+      // Prefer native stores when published; otherwise open the web app.
+      if (isIOS && iosUrl) return iosUrl;
+      if (isAndroid && androidUrl) return androidUrl;
+      if (androidUrl) return androidUrl;
+      if (iosUrl) return iosUrl;
+      return webUrl || '';
+    }
+
+    document.addEventListener(
+      'click',
+      function (event) {
+        var link = event.target.closest('[data-enarte-app-download]');
+        if (!link) return;
+        var iosUrl = (link.getAttribute('data-ios-url') || '').trim();
+        var androidUrl = (link.getAttribute('data-android-url') || '').trim();
+        var webUrl = (link.getAttribute('data-web-url') || '').trim();
+        var target = pickUrl(iosUrl, androidUrl, webUrl);
+        if (!target) {
+          event.preventDefault();
+          alert('تطبيق ENARTE قريباً.');
+          return;
+        }
+        event.preventDefault();
+        window.open(target, '_blank', 'noopener,noreferrer');
+      },
+      true
+    );
+  })();
+</script>

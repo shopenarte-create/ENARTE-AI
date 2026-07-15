@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "com.enarte.mobile",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#f7f3ec",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -44,7 +45,6 @@
           "backgroundColor": "#f7f3ec"
         }
       ],
-      "expo-image",
       [
         "expo-image-picker",
         {
@@ -54,7 +54,8 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "baseUrl": "/app"
     }
   }
 }

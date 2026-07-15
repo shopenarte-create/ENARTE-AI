@@ -186,6 +186,15 @@
         "heading": "طرق الدفع المتاحة"
       }
     },
+    "enarte_app_download": {
+      "type": "enarte-app-download",
+      "settings": {
+        "enable": true,
+        "heading": "تطبيق ENARTE",
+        "text": "تسوّق وجرّب الإضاءة في غرفتك من هاتفك — حمّل التطبيق الآن.",
+        "button_label": "حمّل التطبيق"
+      }
+    },
     "footer_utilities_jLGE8U": {
       "type": "footer-utilities",
       "blocks": {
@@ -209,11 +218,11 @@
         "social_links_Ew63Kq": {
           "type": "social-links",
           "settings": {
-            "facebook_url": "https://www.facebook.com/",
-            "instagram_url": "https://www.instagram.com/",
-            "youtube_url": "https://www.youtube.com/",
-            "tiktok_url": "https://www.tiktok.com/",
-            "twitter_url": "https://x.com/"
+            "facebook_url": "https://www.facebook.com/share/1BNcnyMsjn/",
+            "instagram_url": "https://www.instagram.com/enartejo/",
+            "youtube_url": "",
+            "tiktok_url": "",
+            "twitter_url": ""
           },
           "blocks": {}
         }
@@ -238,6 +247,7 @@
   "order": [
     "footer_m9NzUG",
     "enarte_payments",
+    "enarte_app_download",
     "footer_utilities_jLGE8U"
   ]
 }

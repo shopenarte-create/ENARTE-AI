@@ -78,6 +78,31 @@ app.use(
 );
 app.use(PROXY_PREFIX, express.static(CLIENT_DIR, { maxAge: "1h" }));
 app.use(express.static("public", { maxAge: "1h" }));
+
+// ENARTE mobile web app (Expo static export) at /app
+const MOBILE_WEB_DIR = path.resolve("public/app");
+if (fs.existsSync(MOBILE_WEB_DIR)) {
+  app.use(
+    "/app",
+    express.static(MOBILE_WEB_DIR, {
+      maxAge: "1h",
+      index: false,
+      redirect: false,
+    }),
+  );
+  app.get(/^\/app(\/.*)?$/, (req, res, next) => {
+    // Don't hijack real asset files under /app/_expo etc. when missing → 404.
+    if (path.extname(req.path)) return next();
+    const indexHtml = path.join(MOBILE_WEB_DIR, "index.html");
+    if (!fs.existsSync(indexHtml)) return next();
+    res.setHeader("Cache-Control", "no-cache");
+    return res.sendFile(indexHtml);
+  });
+  console.log(`[enarte-serve] mobile web mounted at /app → ${MOBILE_WEB_DIR}`);
+} else {
+  console.warn("[enarte-serve] public/app missing — mobile web not mounted");
+}
+
 app.use(morgan("tiny"));
 
 app.all("*", (req, res, next) => {
