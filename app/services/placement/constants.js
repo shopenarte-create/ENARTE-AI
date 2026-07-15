@@ -4,7 +4,7 @@
 
 export const GENERATION_PROMPT_VERSION = "placement.prompt.v7";
 export const PLACEMENT_PLAN_VERSION = "placement.plan.v1";
-export const MAX_PLACEMENT_MARKERS_V1 = 4;
+export const MAX_PLACEMENT_MARKERS_V1 = 5;
 
 export const RENDERER_IDS = Object.freeze({
   OPENAI_GPT_IMAGE_1: "openai-gpt-image-1",

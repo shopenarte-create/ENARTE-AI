@@ -1,5 +1,5 @@
 import { useLoaderData } from "react-router";
-import EnarteHomePage from "../components/EnarteHomePage.jsx";
+import RoomTryStudio from "../components/RoomTryStudio.jsx";
 import {
   isProductEntry,
   parseLockedProductFromSearchParams,
@@ -7,8 +7,7 @@ import {
 
 /**
  * Storefront entry: /try?entry=product|home&handoff=...
- * - product: place the locked product (skip recommendations)
- * - home: analyze room → recommend top 3 → place
+ * Automatic virtual-try studio (no manual markers).
  */
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
@@ -19,7 +18,6 @@ export const loader = async ({ request }) => {
     entryMode,
     lockedProduct,
     shop: url.searchParams.get("shop") || null,
-    // Must be loader-driven so SSR + client initial state match (avoids React #418).
     handoffId: url.searchParams.get("handoff") || null,
   };
 };
@@ -27,7 +25,7 @@ export const loader = async ({ request }) => {
 export default function TryRoute() {
   const data = useLoaderData();
   return (
-    <EnarteHomePage
+    <RoomTryStudio
       entryMode={data.entryMode}
       lockedProduct={data.lockedProduct}
       handoffId={data.handoffId}
