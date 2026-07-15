@@ -47,6 +47,7 @@
     "@shopify/shopify-app-session-storage-memory": "^6.0.1",
     "@shopify/shopify-app-session-storage-prisma": "^9.0.0",
     "isbot": "^5.1.31",
+    "nodemailer": "^9.0.3",
     "openai": "^6.45.0",
     "prisma": "^6.16.3",
     "react": "^18.3.1",

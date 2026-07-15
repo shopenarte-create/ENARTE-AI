@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
-import * as WebBrowser from "expo-web-browser";
+import { useRouter } from "expo-router";
 import {
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,9 +10,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useCart } from "@/src/cart/CartContext";
-import { colors, spacing } from "@/src/theme";
+import { SOCIAL } from "@/src/config/social";
+import { colors, radii, spacing } from "@/src/theme";
 
 export default function CartScreen() {
+  const router = useRouter();
   const {
     lines,
     count,
@@ -23,17 +26,43 @@ export default function CartScreen() {
     checkoutUrl,
   } = useCart();
 
-  async function checkout() {
-    if (!checkoutUrl) return;
-    await WebBrowser.openBrowserAsync(checkoutUrl);
+  function checkout() {
+    // Order form first (name/phone/governorate), then optional electronic payment.
+    router.push("/order");
+  }
+
+  async function orderViaWhatsApp() {
+    const items = lines
+      .map(
+        (line, i) =>
+          `${i + 1}) ${line.productTitle}${
+            line.variantTitle && line.variantTitle !== "Default Title"
+              ? ` (${line.variantTitle})`
+              : ""
+          } × ${line.quantity} — ${line.price} ${line.currency}`,
+      )
+      .join("\n");
+    const message = encodeURIComponent(
+      `طلب جديد من تطبيق ENARTE\n\n${items}\n\nالمجموع: ${subtotal.toFixed(2)} ${currency}\n\nأرغب بإتمام الطلب${
+        checkoutUrl ? `\nرابط السلة: ${checkoutUrl}` : ""
+      }`,
+    );
+    await Linking.openURL(`${SOCIAL.contactWhatsApp}?text=${message}`);
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.heading}>السلة ({count})</Text>
+        <Text style={styles.heading}>سلتك</Text>
+        <Text style={styles.sub}>{count} منتج — الدفع عبر المتجر أو واتساب</Text>
+
         {!lines.length ? (
-          <Text style={styles.empty}>سلتك فارغة — تصفّح المتجر وأضف منتجات.</Text>
+          <View style={styles.emptyBox}>
+            <Text style={styles.empty}>سلتك فارغة</Text>
+            <Pressable style={styles.shopBtn} onPress={() => router.push("/shop")}>
+              <Text style={styles.shopBtnText}>تصفّح المتجر</Text>
+            </Pressable>
+          </View>
         ) : (
           lines.map((line) => (
             <View key={line.variantId} style={styles.row}>
@@ -78,12 +107,22 @@ export default function CartScreen() {
 
       {lines.length ? (
         <View style={styles.footer}>
-          <Text style={styles.subtotal}>
-            المجموع: {subtotal.toFixed(2)} {currency}
-          </Text>
+          <View style={styles.totalRow}>
+            <Text style={styles.subtotal}>
+              {subtotal.toFixed(2)} {currency}
+            </Text>
+            <Text style={styles.totalLabel}>المجموع</Text>
+          </View>
           <Pressable style={styles.checkout} onPress={checkout}>
             <Text style={styles.checkoutText}>إتمام الشراء</Text>
           </Pressable>
+          <Pressable style={styles.whatsapp} onPress={orderViaWhatsApp}>
+            <Text style={styles.whatsappText}>اطلب عبر واتساب الآن</Text>
+          </Pressable>
+          <Text style={styles.payHint}>
+            إذا لم تظهر بطاقة/خيارات الدفع في صفحة Shopify، فعّلوها من لوحة التحكم
+            (Settings → Payments) أو استخدموا واتساب أعلاه.
+          </Text>
           <Pressable onPress={clear}>
             <Text style={styles.clear}>تفريغ السلة</Text>
           </Pressable>
@@ -97,22 +136,31 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.ivory },
   content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 24 },
   heading: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: "800",
     color: colors.charcoal,
     textAlign: "right",
   },
-  empty: { color: colors.muted, textAlign: "center", marginTop: 40 },
+  sub: { color: colors.muted, textAlign: "right", marginTop: -6 },
+  emptyBox: { alignItems: "center", marginTop: 48, gap: 16 },
+  empty: { color: colors.muted, fontSize: 16 },
+  shopBtn: {
+    backgroundColor: colors.gold,
+    borderRadius: radii.md,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+  },
+  shopBtnText: { fontWeight: "800", color: colors.charcoal },
   row: {
     flexDirection: "row-reverse",
     gap: 12,
     backgroundColor: colors.white,
-    borderRadius: 14,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.line,
-    padding: 10,
+    padding: 12,
   },
-  thumb: { width: 84, height: 84, borderRadius: 10, backgroundColor: colors.beige },
+  thumb: { width: 88, height: 88, borderRadius: 12, backgroundColor: colors.beige },
   thumbEmpty: { opacity: 0.6 },
   meta: { flex: 1, gap: 4 },
   title: { fontWeight: "700", color: colors.charcoal, textAlign: "right" },
@@ -125,9 +173,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   qtyBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 9,
     backgroundColor: colors.beige,
     alignItems: "center",
     justifyContent: "center",
@@ -142,18 +190,37 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: 10,
   },
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  totalLabel: { color: colors.muted, fontWeight: "600" },
   subtotal: {
     fontWeight: "800",
-    fontSize: 16,
+    fontSize: 18,
     color: colors.charcoal,
-    textAlign: "right",
   },
   checkout: {
     backgroundColor: colors.gold,
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: radii.md,
+    paddingVertical: 15,
     alignItems: "center",
   },
   checkoutText: { fontWeight: "800", color: colors.charcoal, fontSize: 16 },
+  whatsapp: {
+    backgroundColor: "#25D366",
+    borderRadius: radii.md,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  whatsappText: { fontWeight: "800", color: "#fff", fontSize: 15 },
+  payHint: {
+    color: colors.muted,
+    textAlign: "center",
+    fontSize: 11,
+    lineHeight: 16,
+  },
+  disabled: { opacity: 0.45 },
   clear: { textAlign: "center", color: colors.muted, fontWeight: "600" },
 });
