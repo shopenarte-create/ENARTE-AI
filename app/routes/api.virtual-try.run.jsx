@@ -105,6 +105,7 @@ export async function action({ request }) {
       }
       roomBuffer = entry.buffer;
       mimeType = entry.mimeType || "image/jpeg";
+      // Product-page handoff: keep the exact SKU the customer asked to try.
       if (!lockedProduct && entry.product) {
         lockedProduct = entry.product;
       }
@@ -113,6 +114,17 @@ export async function action({ request }) {
       mimeType = roomImage.type || "image/jpeg";
     } else {
       return json({ success: false, error: "صورة الغرفة مطلوبة." }, 400);
+    }
+
+    if (!lockedProduct?.id && !lockedProduct?.image) {
+      return json(
+        {
+          success: false,
+          error:
+            "يجب اختيار منتج قبل التركيب. من الرئيسية اختر من الاقتراحات، ومن صفحة المنتج يُستخدم المنتج الحالي.",
+        },
+        400,
+      );
     }
 
     const jobId = startVirtualTryPipeline({

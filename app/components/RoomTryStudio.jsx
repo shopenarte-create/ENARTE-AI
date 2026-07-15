@@ -13,6 +13,7 @@ const COUNT_OPTIONS = [
 
 const STEPS = {
   SETUP: "setup",
+  PICK: "pick",
   RUNNING: "running",
   CONFIRM: "confirm",
   RESULT: "result",
@@ -21,6 +22,7 @@ const STEPS = {
 const PHASE_LABELS = {
   queued: "جاري التحضير...",
   analyzing: "جاري تحليل الغرفة...",
+  suggesting: "جاري اقتراح ثريات مناسبة...",
   preparing: "جاري تجهيز الصورة...",
   installing: "جاري تركيب الثريات...",
   done: "اكتملت الصورة",
@@ -131,7 +133,8 @@ export default function RoomTryStudio({
   lockedProduct = null,
   handoffId: handoffIdProp = null,
 }) {
-  const isProductEntry = entryMode === "product" && Boolean(lockedProduct);
+  /** Product-page card: install ONLY the requested product (no suggestions). */
+  const isProductEntry = entryMode === "product";
   const fileRef = useRef(null);
   const pollRef = useRef(null);
 
@@ -141,15 +144,14 @@ export default function RoomTryStudio({
       ? new URLSearchParams(window.location.search).get("handoff")
       : null);
 
-  const [step, setStep] = useState(
-    initialHandoff ? STEPS.SETUP : STEPS.SETUP,
-  );
+  const [step, setStep] = useState(STEPS.SETUP);
   const [roomPreviewUrl, setRoomPreviewUrl] = useState(null);
   const [roomFile, setRoomFile] = useState(null);
   const [handoffId, setHandoffId] = useState(initialHandoff);
   const [product, setProduct] = useState(() =>
     normalizeLockedProduct(lockedProduct),
   );
+  const [suggestions, setSuggestions] = useState([]);
   const [count, setCount] = useState("1");
   const [budget, setBudget] = useState(DEFAULT_BUDGET_ID);
   const [style, setStyle] = useState("");
@@ -159,6 +161,7 @@ export default function RoomTryStudio({
   const [resultUrl, setResultUrl] = useState(null);
   const [error, setError] = useState(null);
   const [bootstrapping, setBootstrapping] = useState(Boolean(initialHandoff));
+  const [suggesting, setSuggesting] = useState(false);
 
   const stopPoll = useCallback(() => {
     if (pollRef.current) {
@@ -183,7 +186,7 @@ export default function RoomTryStudio({
         );
         if (metaRes.ok) {
           const meta = await metaRes.json();
-          if (!cancelled && meta?.product) {
+          if (!cancelled && meta?.product && entryMode === "product") {
             setProduct((prev) =>
               normalizeLockedProduct({ ...(prev || {}), ...meta.product }),
             );
@@ -224,7 +227,7 @@ export default function RoomTryStudio({
     return () => {
       cancelled = true;
     };
-  }, [initialHandoff]);
+  }, [initialHandoff, entryMode]);
 
   const onPickFile = async (event) => {
     const file = event.target.files?.[0];
@@ -300,7 +303,9 @@ export default function RoomTryStudio({
     forceCount = false,
     acceptSuggestedCount = false,
     resumeJobId = null,
+    productOverride = null,
   } = {}) => {
+    const activeProduct = normalizeLockedProduct(productOverride || product);
     setError(null);
     setConfirmInfo(null);
     setResultUrl(null);
@@ -308,6 +313,14 @@ export default function RoomTryStudio({
     setPhase(resumeJobId ? "preparing" : "analyzing");
 
     try {
+      if (!resumeJobId && !activeProduct) {
+        throw new Error(
+          isProductEntry
+            ? "بيانات المنتج غير متوفرة"
+            : "اختر ثريا من الاقتراحات أولاً",
+        );
+      }
+
       const form = new FormData();
       if (resumeJobId) {
         form.set("jobId", resumeJobId);
@@ -324,7 +337,8 @@ export default function RoomTryStudio({
         form.set("count", count);
         form.set("budget", budget);
         if (style) form.set("style", style);
-        if (product) form.set("product", JSON.stringify(product));
+        // Always lock the chosen/product-card SKU — never silent catalog pick.
+        form.set("product", JSON.stringify(activeProduct));
         if (forceCount) form.set("forceCount", "1");
         if (acceptSuggestedCount) form.set("acceptSuggestedCount", "1");
       }
@@ -341,8 +355,90 @@ export default function RoomTryStudio({
       pollStatus(data.jobId);
     } catch (err) {
       setError(err?.message || "تعذر بدء التجربة");
-      setStep(STEPS.SETUP);
+      setStep(suggestions.length ? STEPS.PICK : STEPS.SETUP);
     }
+  };
+
+  /** Home / main entry: suggest top 3 chandeliers, then customer picks. */
+  const loadSuggestions = async () => {
+    setError(null);
+    setSuggesting(true);
+    setPhase("suggesting");
+    setStep(STEPS.RUNNING);
+    try {
+      if (!roomFile && !handoffId) {
+        throw new Error("ارفع صورة الغرفة أولاً");
+      }
+
+      let imageBlob = roomFile;
+      if (!imageBlob && handoffId) {
+        const rawRes = await fetch(
+          enarteApiUrl(
+            `/api/try-handoff?id=${encodeURIComponent(handoffId)}&raw=1`,
+          ),
+          { cache: "no-store" },
+        );
+        if (!rawRes.ok) throw new Error("تعذر تحميل صورة الغرفة");
+        imageBlob = await rawRes.blob();
+      }
+
+      const analyzeForm = new FormData();
+      analyzeForm.set(
+        "image",
+        imageBlob instanceof File
+          ? imageBlob
+          : new File([imageBlob], "room.jpg", {
+              type: imageBlob.type || "image/jpeg",
+            }),
+      );
+      analyzeForm.set("budget", budget);
+
+      const analyzeRes = await fetch(enarteApiUrl("/api/analyze"), {
+        method: "POST",
+        body: analyzeForm,
+      });
+      const analyzeData = await analyzeRes.json();
+      if (!analyzeRes.ok || !analyzeData?.success) {
+        throw new Error(analyzeData?.error || "تعذر تحليل الغرفة");
+      }
+
+      const productsForm = new FormData();
+      productsForm.set("analysis", analyzeData.result || "");
+      productsForm.set("budget", budget);
+      const productsRes = await fetch(enarteApiUrl("/api/products"), {
+        method: "POST",
+        body: productsForm,
+      });
+      const productsData = await productsRes.json();
+      if (!productsRes.ok || !productsData?.success) {
+        throw new Error(productsData?.error || "تعذر جلب الاقتراحات");
+      }
+
+      const top = (productsData.products || [])
+        .slice(0, 3)
+        .map(normalizeLockedProduct)
+        .filter((p) => p && (p.id || p.image));
+
+      if (!top.length) {
+        throw new Error("ما لقينا ثريات مناسبة — جرّب ميزانية مختلفة");
+      }
+
+      setSuggestions(top);
+      setStep(STEPS.PICK);
+    } catch (err) {
+      setError(err?.message || "تعذر اقتراح الثريات");
+      setStep(STEPS.SETUP);
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  const onPrimaryTry = () => {
+    if (isProductEntry) {
+      startRun();
+      return;
+    }
+    loadSuggestions();
   };
 
   const phaseLabel = useMemo(
@@ -379,7 +475,9 @@ export default function RoomTryStudio({
             جرّبها بغرفتك
           </h1>
           <p style={{ margin: 0, color: "#6b6560", fontSize: 14, lineHeight: 1.6 }}>
-            ارفع صورة الغرفة، اختر عدد الثريات، وسنركّبها تلقائياً بمواضع احترافية.
+            {isProductEntry
+              ? "ارفع صورة غرفتك وسنركّب المنتج الذي اخترته تلقائياً."
+              : "ارفع صورة الغرفة، نقترح لك 3 ثريات مناسبة، وأنت تختار ثم نركّبها."}
           </p>
         </header>
 
@@ -440,7 +538,10 @@ export default function RoomTryStudio({
           </div>
         ) : null}
 
-        {step === STEPS.SETUP || step === STEPS.RUNNING || step === STEPS.CONFIRM ? (
+        {step === STEPS.SETUP ||
+        step === STEPS.RUNNING ||
+        step === STEPS.CONFIRM ||
+        step === STEPS.PICK ? (
           <section
             style={{
               background: "#fff",
@@ -450,6 +551,8 @@ export default function RoomTryStudio({
               boxShadow: "0 10px 30px rgba(28,25,20,0.06)",
             }}
           >
+            {step !== STEPS.PICK ? (
+              <>
             <div
               style={{
                 position: "relative",
@@ -500,7 +603,7 @@ export default function RoomTryStudio({
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 style={{ ...btnSecondary, marginBottom: 18 }}
-                disabled={step === STEPS.RUNNING}
+                disabled={step === STEPS.RUNNING || suggesting}
               >
                 تغيير الصورة
               </button>
@@ -515,7 +618,7 @@ export default function RoomTryStudio({
                   <button
                     key={opt.id}
                     type="button"
-                    disabled={step === STEPS.RUNNING}
+                    disabled={step === STEPS.RUNNING || suggesting}
                     onClick={() => setCount(opt.id)}
                     style={chipActive(count === opt.id)}
                   >
@@ -532,7 +635,7 @@ export default function RoomTryStudio({
               </div>
               <select
                 value={budget}
-                disabled={step === STEPS.RUNNING}
+                disabled={step === STEPS.RUNNING || suggesting}
                 onChange={(e) => setBudget(e.target.value)}
                 style={{
                   width: "100%",
@@ -561,7 +664,7 @@ export default function RoomTryStudio({
                   <button
                     key={opt.id || "auto"}
                     type="button"
-                    disabled={step === STEPS.RUNNING}
+                    disabled={step === STEPS.RUNNING || suggesting}
                     onClick={() => setStyle(opt.id)}
                     style={chipActive(style === opt.id)}
                   >
@@ -570,6 +673,103 @@ export default function RoomTryStudio({
                 ))}
               </div>
             </div>
+              </>
+            ) : null}
+
+            {step === STEPS.PICK ? (
+              <div>
+                {roomPreviewUrl ? (
+                  <img
+                    src={roomPreviewUrl}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      maxHeight: 160,
+                      objectFit: "cover",
+                      borderRadius: 12,
+                      marginBottom: 14,
+                    }}
+                  />
+                ) : null}
+                <p style={{ margin: "0 0 12px", fontWeight: 700, fontSize: 15 }}>
+                  اختر ثريا من الاقتراحات ({suggestions.length})
+                </p>
+                <div style={{ display: "grid", gap: 12 }}>
+                  {suggestions.map((item) => (
+                    <button
+                      key={item.id || item.image}
+                      type="button"
+                      onClick={() => {
+                        setProduct(item);
+                        startRun({ productOverride: item });
+                      }}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "center",
+                        textAlign: "right",
+                        padding: 12,
+                        borderRadius: 14,
+                        border: `1px solid #e6ddd0`,
+                        background: ivory,
+                        cursor: "pointer",
+                        width: "100%",
+                      }}
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt=""
+                          style={{
+                            width: 72,
+                            height: 72,
+                            objectFit: "cover",
+                            borderRadius: 10,
+                            flexShrink: 0,
+                          }}
+                        />
+                      ) : null}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontWeight: 700,
+                            fontSize: 14,
+                            color: charcoal,
+                          }}
+                        >
+                          {item.title}
+                        </div>
+                        {item.price != null ? (
+                          <div style={{ color: gold, fontSize: 13, marginTop: 4 }}>
+                            {item.price} {item.currency || "JOD"}
+                          </div>
+                        ) : null}
+                        <div
+                          style={{
+                            marginTop: 8,
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: gold,
+                          }}
+                        >
+                          جرّب هذه الثريا ←
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  style={{ ...btnSecondary, marginTop: 14 }}
+                  onClick={() => {
+                    setSuggestions([]);
+                    setStep(STEPS.SETUP);
+                  }}
+                >
+                  رجوع
+                </button>
+              </div>
+            ) : null}
 
             {step === STEPS.RUNNING ? (
               <div style={{ textAlign: "center", padding: "8px 0 4px" }}>
@@ -630,19 +830,19 @@ export default function RoomTryStudio({
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : step === STEPS.SETUP ? (
               <button
                 type="button"
                 style={{
                   ...btnPrimary,
                   opacity: roomPreviewUrl ? 1 : 0.5,
                 }}
-                disabled={!roomPreviewUrl}
-                onClick={() => startRun()}
+                disabled={!roomPreviewUrl || (isProductEntry && !product)}
+                onClick={onPrimaryTry}
               >
-                جرّب الآن
+                {isProductEntry ? "جرّب الآن" : "اقترح ثريات مناسبة"}
               </button>
-            )}
+            ) : null}
           </section>
         ) : null}
 
@@ -681,6 +881,8 @@ export default function RoomTryStudio({
                 onClick={() => {
                   setResultUrl(null);
                   setJobId(null);
+                  setSuggestions([]);
+                  if (!isProductEntry) setProduct(null);
                   setStep(STEPS.SETUP);
                 }}
               >
