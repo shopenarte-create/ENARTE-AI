@@ -2133,9 +2133,9 @@
       {
         "type": "text",
         "id": "enarte_web_app_url",
-        "label": "رابط تطبيق الويب (حالياً)",
-        "default": "https://enarte-ai-production.up.railway.app/app",
-        "info": "يفتح هذا الرابط حتى تتوفر روابط المتاجر"
+        "label": "رابط صفحة التحميل / التثبيت",
+        "default": "https://enarte-ai-production.up.railway.app/download/",
+        "info": "صفحة خيارات التثبيت (وليس فتح التطبيق مباشرة). رابط التطبيق نفسه: /app/"
       },
       {
         "type": "text",
