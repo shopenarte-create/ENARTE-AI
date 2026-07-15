@@ -2,7 +2,7 @@
  * Brand catalog adapter — only place that knows Shopify/ENARTE collections.
  */
 
-import { recommendProducts } from "../shopify-products.server.js";
+import { recommendProducts } from "../../shopify-products.server.js";
 
 /**
  * @param {{ analysisText?: string, budgetId?: string, count?: number, shop?: string|null }} input
