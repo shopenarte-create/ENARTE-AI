@@ -1,8 +1,13 @@
+import { useHeaderHeight } from "@react-navigation/elements";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -32,6 +37,7 @@ function humanizeError(code: string) {
 }
 
 export default function AssistantScreen() {
+  const headerHeight = useHeaderHeight();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -71,6 +77,14 @@ export default function AssistantScreen() {
       listRef.current?.scrollToEnd({ animated: true });
     });
   }, []);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => scrollEnd(),
+    );
+    return () => show.remove();
+  }, [scrollEnd]);
 
   const send = useCallback(
     async (payload: {
@@ -142,6 +156,7 @@ export default function AssistantScreen() {
           setError(humanizeError(data.error || "send_failed"));
         }
         setDraft("");
+        Keyboard.dismiss();
         scrollEnd();
       } catch (err) {
         setMessages((prev) => prev.filter((m) => !m.meta?.optimistic));
@@ -155,6 +170,7 @@ export default function AssistantScreen() {
   );
 
   const onPickImage = useCallback(async () => {
+    Keyboard.dismiss();
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       setError("يلزم إذن الوصول للصور.");
@@ -189,36 +205,48 @@ export default function AssistantScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      {error ? (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      ) : null}
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item, index) => item.id || `msg_${index}`}
-        contentContainerStyle={styles.list}
-        onContentSizeChange={scrollEnd}
-        renderItem={({ item }) => (
-          <MessageBubble
-            message={item}
-            busy={busy}
-            onAction={(action: SmartAction) => send({ actionId: action.id })}
-            onSelectProduct={(card) => send({ selectedProduct: card })}
-          />
-        )}
-        ListEmptyComponent={
-          <Text style={styles.empty}>ابدأ المحادثة أو اختَر إجراءً ذكياً.</Text>
-        }
-      />
-      <Composer
-        value={draft}
-        onChange={setDraft}
-        disabled={busy || !sessionId}
-        onSend={() => send({ message: draft.trim() })}
-        onPickImage={onPickImage}
-      />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={headerHeight}
+      >
+        {error ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+        <FlatList
+          ref={listRef}
+          data={messages}
+          style={styles.flex}
+          keyExtractor={(item, index) => item.id || `msg_${index}`}
+          contentContainerStyle={styles.list}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          onScrollBeginDrag={Keyboard.dismiss}
+          onContentSizeChange={scrollEnd}
+          renderItem={({ item }) => (
+            <MessageBubble
+              message={item}
+              busy={busy}
+              onAction={(action: SmartAction) => send({ actionId: action.id })}
+              onSelectProduct={(card) => send({ selectedProduct: card })}
+            />
+          )}
+          ListEmptyComponent={
+            <Pressable onPress={Keyboard.dismiss}>
+              <Text style={styles.empty}>ابدأ المحادثة أو اختَر إجراءً ذكياً.</Text>
+            </Pressable>
+          }
+        />
+        <Composer
+          value={draft}
+          onChange={setDraft}
+          disabled={busy || !sessionId}
+          onSend={() => send({ message: draft.trim() })}
+          onPickImage={onPickImage}
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -227,6 +255,9 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.ivory,
+  },
+  flex: {
+    flex: 1,
   },
   center: {
     flex: 1,
@@ -241,6 +272,7 @@ const styles = StyleSheet.create({
   list: {
     padding: spacing.md,
     paddingBottom: spacing.lg,
+    flexGrow: 1,
   },
   empty: {
     textAlign: "center",

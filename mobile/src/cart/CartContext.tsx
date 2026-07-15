@@ -111,7 +111,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       )
       .filter(Boolean);
     const checkoutUrl = parts.length
-      ? `${STORE_URL}/cart/${parts.join(",")}`
+      ? `${STORE_URL}/cart/${parts.join(",")}?locale=ar`
       : null;
 
     return {

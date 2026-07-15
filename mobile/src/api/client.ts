@@ -48,7 +48,9 @@ export async function apiFetch<T = any>(
   if (!response.ok) {
     const code =
       (data as any)?.error || (data as any)?.code || `http_${response.status}`;
-    throw new ApiError(String(code), response.status, String(code));
+    const message =
+      (data as any)?.message || (data as any)?.error || String(code);
+    throw new ApiError(String(message), response.status, String(code));
   }
 
   return data as T;

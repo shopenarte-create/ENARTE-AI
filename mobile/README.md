@@ -2,6 +2,8 @@
 
 تطبيق موبايل داخلي لـ ENARTE يركز على المساعد الذكي وتجربة الإضاءة، متصل بسيرفر Railway.
 
+يستخدم **Expo SDK 54** ليتوافق مع Expo Go من متجر التطبيقات (Supported SDK: 54).
+
 ## المتطلبات
 
 - Node 20+
@@ -34,20 +36,12 @@ EXPO_PUBLIC_SHOP_DOMAIN=jb8xus-wn.myshopify.com
 
 ## الشاشات
 
-- **الرئيسية:** دخول سريع للتسوق والمساعد
+- **الرئيسية:** هوية ENARTE فاخرة + اختصارات للمتجر والتجربة والمساعد
 - **المتجر:** تصنيفات + بحث + شبكة منتجات
-- **تفاصيل المنتج:** اختيار variant + إضافة للسلة
-- **السلة:** تعديل الكميات + إتمام الشراء عبر Shopify Checkout
-- **المساعد:** جلسات/رسائل/إجراءات ذكية + بطاقات منتجات (مع إضافة للسلة)
-- **جرب الإضاءة:** رفع صورة غرفة عبر `/api/try-handoff` ثم متابعة التجربة
-
-## API المتجر (على Railway)
-
-```
-GET /api/mobile/catalog?type=collections
-GET /api/mobile/catalog?type=products&collection=chandeliers
-GET /api/mobile/catalog?type=product&handle=...
-```
+- **تفاصيل المنتج:** اختيار variant + **جرّبها بغرفتك** + إضافة للسلة
+- **السلة:** تعديل الكميات + **دفع داخل التطبيق** (WebView لـ Shopify Checkout)
+- **المساعد:** جلسات/رسائل/إجراءات ذكية + بطاقات منتجات
+- **جرب الإضاءة:** رفع صورة غرفة ثم فتح الاستوديو داخل التطبيق (بدون متصفح خارجي)
 
 ## بناء داخلي (Android APK)
 
@@ -61,7 +55,15 @@ npx eas-cli build --platform android --profile preview
 
 لـ iOS استخدم Expo Go أولاً، ثم `eas build --platform ios --profile preview` عند توفر حساب Apple Developer.
 
+## API المتجر (على Railway)
+
+```
+GET /api/mobile/catalog?type=collections
+GET /api/mobile/catalog?type=products&collection=chandeliers
+GET /api/mobile/catalog?type=product&handle=...
+```
+
 ## ملاحظات
 
-- الشراء يتم عبر فتح متجر Shopify (ليس سلة داخل التطبيق في الـ MVP).
+- الدفع و«جرّبها بغرفتك» يتمان **داخل التطبيق** عبر WebView (بدون إجبار فتح المتصفح/الموقع).
 - التطبيق يخاطب Railway مباشرة (لا يعتمد على App Proxy).

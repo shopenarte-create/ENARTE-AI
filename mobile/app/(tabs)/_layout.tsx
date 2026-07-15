@@ -1,11 +1,33 @@
+import { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps } from "react";
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useCart } from "@/src/cart/CartContext";
 import { colors } from "@/src/theme";
 
+type IconName = ComponentProps<typeof Ionicons>["name"];
+
+function TabIcon({
+  name,
+  focused,
+  color,
+}: {
+  name: IconName;
+  focused: boolean;
+  color: string;
+}) {
+  return (
+    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+      <Ionicons name={name} size={22} color={color} />
+    </View>
+  );
+}
+
 function TabLabel({ label, color }: { label: string; color: string }) {
   return (
-    <Text style={{ color, fontSize: 11, fontWeight: "700" }}>{label}</Text>
+    <Text style={[styles.label, { color }]} numberOfLines={1}>
+      {label}
+    </Text>
   );
 }
 
@@ -17,52 +39,66 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.goldDeep,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.line,
-          height: 64,
-          paddingBottom: 8,
-          paddingTop: 6,
-        },
+        tabBarStyle: styles.bar,
+        tabBarItemStyle: styles.item,
         headerStyle: { backgroundColor: colors.ivory },
         headerTitleStyle: { fontWeight: "700", color: colors.charcoal },
         headerShadowVisible: false,
+        headerTitleAlign: "center",
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "الرئيسية",
-          tabBarLabel: ({ color }) => (
-            <TabLabel label="الرئيسية" color={String(color)} />
+          title: "ENARTE",
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name={focused ? "home" : "home-outline"} focused={focused} color={color} />
           ),
+          tabBarLabel: ({ color }) => <TabLabel label="الرئيسية" color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="shop"
         options={{
           title: "المتجر",
-          tabBarLabel: ({ color }) => (
-            <TabLabel label="المتجر" color={String(color)} />
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              name={focused ? "grid" : "grid-outline"}
+              focused={focused}
+              color={color}
+            />
           ),
+          tabBarLabel: ({ color }) => <TabLabel label="المتجر" color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="assistant"
         options={{
           title: "المساعد",
-          tabBarLabel: ({ color }) => (
-            <TabLabel label="المساعد" color={String(color)} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              name={focused ? "chatbubbles" : "chatbubbles-outline"}
+              focused={focused}
+              color={color}
+            />
           ),
+          tabBarLabel: ({ color }) => <TabLabel label="المساعد" color={String(color)} />,
         }}
       />
       <Tabs.Screen
         name="try"
         options={{
-          title: "جرب الإضاءة",
-          tabBarLabel: ({ color }) => (
-            <TabLabel label="جرب" color={String(color)} />
+          title: "جرّبها بغرفتك",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              name={focused ? "camera" : "camera-outline"}
+              focused={focused}
+              color={color}
+            />
           ),
+          tabBarLabel: ({ color }) => <TabLabel label="جرّب" color={String(color)} />,
         }}
       />
       <Tabs.Screen
@@ -70,12 +106,55 @@ export default function TabLayout() {
         options={{
           title: "السلة",
           tabBarBadge: count > 0 ? count : undefined,
-          tabBarLabel: ({ color }) => (
-            <TabLabel label="السلة" color={String(color)} />
+          tabBarBadgeStyle: {
+            backgroundColor: colors.goldDeep,
+            color: "#fff",
+            fontSize: 10,
+          },
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              name={focused ? "bag-handle" : "bag-handle-outline"}
+              focused={focused}
+              color={color}
+            />
           ),
+          tabBarLabel: ({ color }) => <TabLabel label="السلة" color={String(color)} />,
         }}
       />
-      <Tabs.Screen name="two" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  bar: {
+    backgroundColor: colors.white,
+    borderTopColor: colors.line,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    height: 72,
+    paddingBottom: 10,
+    paddingTop: 8,
+    elevation: 8,
+    shadowColor: "#1c1914",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -2 },
+  },
+  item: {
+    paddingTop: 2,
+  },
+  iconWrap: {
+    width: 36,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 10,
+  },
+  iconWrapActive: {
+    backgroundColor: "rgba(196,163,90,0.16)",
+  },
+  label: {
+    fontSize: 10,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+});

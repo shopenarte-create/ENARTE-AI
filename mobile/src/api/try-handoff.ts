@@ -35,8 +35,28 @@ export async function uploadRoomHandoff(params: {
   });
 }
 
-export function webTryUrl(handoffId: string) {
-  return apiUrl(`/try?handoff=${encodeURIComponent(handoffId)}`);
+/** Build /try URL. Product entry must lock the SKU (no 3-product suggestions). */
+export function webTryUrl(
+  handoffId: string,
+  product?: {
+    productId?: string | null;
+    title?: string | null;
+    image?: string | null;
+    url?: string | null;
+    entry?: "home" | "product";
+  } | null,
+) {
+  const params = new URLSearchParams();
+  params.set("handoff", handoffId);
+  const entry = product?.entry || (product?.productId || product?.image ? "product" : "home");
+  params.set("entry", entry);
+  if (entry === "product") {
+    if (product?.productId) params.set("productId", String(product.productId));
+    if (product?.title) params.set("title", String(product.title));
+    if (product?.image) params.set("image", String(product.image));
+    if (product?.url) params.set("url", String(product.url));
+  }
+  return apiUrl(`/try?${params.toString()}`);
 }
 
 export async function pingApi() {

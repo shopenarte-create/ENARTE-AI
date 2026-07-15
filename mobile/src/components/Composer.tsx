@@ -38,6 +38,8 @@ export default function Composer({
         editable={!disabled}
         multiline
         textAlign="right"
+        blurOnSubmit={false}
+        returnKeyType="default"
       />
       <Pressable
         style={[styles.send, disabled && styles.disabled]}
@@ -55,29 +57,33 @@ const styles = StyleSheet.create({
     flexDirection: "row-reverse",
     alignItems: "flex-end",
     gap: spacing.sm,
-    padding: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.line,
     backgroundColor: colors.white,
   },
   input: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     maxHeight: 120,
     borderWidth: 1,
     borderColor: colors.line,
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingTop: 12,
+    paddingBottom: 12,
     backgroundColor: colors.cream,
     color: colors.charcoal,
-    fontSize: 15,
+    fontSize: 16,
+    textAlignVertical: "top",
   },
   send: {
     backgroundColor: colors.gold,
     borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   sendText: {
     color: colors.charcoal,
@@ -88,7 +94,7 @@ const styles = StyleSheet.create({
     borderColor: colors.gold,
     borderRadius: 12,
     paddingHorizontal: 10,
-    paddingVertical: 12,
+    paddingVertical: 14,
     backgroundColor: colors.cream,
   },
   iconBtnText: {

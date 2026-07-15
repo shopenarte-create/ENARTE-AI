@@ -12,12 +12,18 @@ type Props = {
 };
 
 function variantNumericId(card: ProductCardType) {
+  // Never treat product id as a variant id — that breaks /cart/{id}:qty checkout.
   const raw =
     (card as any).variantNumericId ||
     (card as any).selectedVariantNumericId ||
     (card as any).variantId ||
-    card.id;
-  const match = String(raw || "").match(/(\d+)\s*$/);
+    null;
+  if (!raw) return null;
+  const asString = String(raw);
+  if (asString.includes("Product/") && !asString.includes("ProductVariant/")) {
+    return null;
+  }
+  const match = asString.match(/ProductVariant\/(\d+)/) || asString.match(/^(\d+)$/);
   return match ? match[1] : null;
 }
 
@@ -28,7 +34,6 @@ export default function ProductCard({ card, onSelect, disabled }: Props) {
     card.price != null && card.price !== ""
       ? `${card.price} ${card.currency || "JOD"}`.trim()
       : null;
-  const numericId = variantNumericId(card);
   const handle =
     (card as any).handle ||
     String(card.url || "").split("/products/")[1]?.split("?")[0] ||
@@ -65,8 +70,8 @@ export default function ProductCard({ card, onSelect, disabled }: Props) {
             style={[styles.btn, styles.btnPrimary, disabled && styles.btnDisabled]}
             disabled={disabled}
             onPress={async () => {
-              let variantNumeric = numericId;
-              let variantId = String((card as any).variantId || card.id);
+              let variantNumeric = variantNumericId(card);
+              let variantId = String((card as any).variantId || "");
               let price = String(card.price || "0");
               let resolvedHandle = handle;
               if (!variantNumeric) {
@@ -75,9 +80,18 @@ export default function ProductCard({ card, onSelect, disabled }: Props) {
                   const product = await fetchProduct(
                     handle ? { handle } : { id: String(card.id) },
                   );
-                  variantNumeric = product.selectedVariantNumericId || null;
-                  variantId = String(product.selectedVariantId || product.id);
-                  price = String(product.price || price);
+                  const pick =
+                    product.variants?.find((v) => v.available && v.numericId) ||
+                    product.variants?.find((v) => v.numericId) ||
+                    null;
+                  variantNumeric =
+                    pick?.numericId ||
+                    product.selectedVariantNumericId ||
+                    null;
+                  variantId = String(
+                    pick?.id || product.selectedVariantId || variantNumeric || "",
+                  );
+                  price = String(pick?.price || product.price || price);
                   resolvedHandle = product.handle || resolvedHandle;
                 } catch {
                   return;
@@ -89,7 +103,7 @@ export default function ProductCard({ card, onSelect, disabled }: Props) {
                 productTitle: card.title,
                 handle: resolvedHandle,
                 image: card.image ? String(card.image) : null,
-                variantId,
+                variantId: variantId || variantNumeric,
                 variantNumericId: variantNumeric,
                 price,
                 currency: String(card.currency || "JOD"),
