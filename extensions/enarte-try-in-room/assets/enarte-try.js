@@ -386,10 +386,15 @@
     // Warm tunnel + app shell without blocking UI.
     if (navigator.sendBeacon) {
       try {
-        navigator.sendBeacon(appBase + "/api/try-handoff?id=ping");
+        // Prefer GET keepalive image ping when possible; beacon is POST.
+        navigator.sendBeacon(
+          appBase + "/api/try-handoff?id=ping",
+          new Blob([], { type: "text/plain" }),
+        );
       } catch (e2) {}
     } else {
       fetch(appBase + "/api/try-handoff?id=ping", {
+        method: "GET",
         mode: "cors",
         cache: "no-store",
         keepalive: true,

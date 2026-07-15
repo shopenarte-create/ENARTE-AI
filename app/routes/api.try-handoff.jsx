@@ -96,6 +96,12 @@ export async function action({ request }) {
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
 
+  const url = new URL(request.url);
+  // Storefront warm uses sendBeacon POST to ?id=ping (no multipart body).
+  if (url.searchParams.get("id") === "ping") {
+    return json({ success: true, pong: true }, 200, request);
+  }
+
   const started = Date.now();
   try {
     const contentType = request.headers.get("content-type") || "";
