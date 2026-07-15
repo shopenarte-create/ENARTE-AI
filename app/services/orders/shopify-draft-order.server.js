@@ -2,7 +2,7 @@
  * Create Shopify draft orders for mobile COD / CliQ / online leads.
  */
 
-import { unauthenticated, sessionStorage } from "../shopify.server.js";
+import { unauthenticated, sessionStorage } from "../../shopify.server.js";
 import { paymentLabelAr } from "./email.server.js";
 
 const PREFERRED_SHOP =
