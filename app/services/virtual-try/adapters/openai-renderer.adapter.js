@@ -14,16 +14,21 @@ function getOpenAI() {
   return openai;
 }
 
-const ROOM_MAX_EDGE = Number(process.env.ENARTE_ROOM_MAX_EDGE || 1024);
-const PRODUCT_MAX_EDGE = Number(process.env.ENARTE_PRODUCT_MAX_EDGE || 768);
-const IMAGE_QUALITY = process.env.ENARTE_IMAGE_QUALITY || "medium";
-const INPUT_FIDELITY = process.env.ENARTE_INPUT_FIDELITY || "high";
-const JPEG_QUALITY = Number(process.env.ENARTE_PREP_JPEG_QUALITY || 82);
+/** Speed-tuned defaults (override via env). */
+const ROOM_MAX_EDGE = Number(process.env.ENARTE_ROOM_MAX_EDGE || 768);
+const PRODUCT_MAX_EDGE = Number(process.env.ENARTE_PRODUCT_MAX_EDGE || 512);
+const IMAGE_QUALITY = process.env.ENARTE_IMAGE_QUALITY || "low";
+const INPUT_FIDELITY = process.env.ENARTE_INPUT_FIDELITY || "low";
+const JPEG_QUALITY = Number(process.env.ENARTE_PREP_JPEG_QUALITY || 72);
 const OPENAI_EDIT_TIMEOUT_MS = Number(
-  process.env.ENARTE_OPENAI_PLACE_MS || 90_000,
+  process.env.ENARTE_OPENAI_PLACE_MS || 75_000,
 );
+/** Always square 1024 — faster than 1536 landscape variants. */
+const FORCE_SQUARE =
+  String(process.env.ENARTE_VIRTUAL_TRY_FORCE_SQUARE || "1") !== "0";
 
 function pickOutputSize(width, height) {
+  if (FORCE_SQUARE) return "1024x1024";
   if (!width || !height) return "1024x1024";
   const ratio = width / height;
   if (ratio > 1.35) return "1536x1024";
@@ -113,7 +118,38 @@ ${analysis?.summaryAr || ""}
 `.trim();
 }
 
-function buildInstallPromptFromFixtures(plan, analysis, layout) {
+function buildCombinedPrompt(plan, analysis, layout) {
+  const base = buildGenerationPrompt(plan);
+  const scaleNotes = (plan.fixtures || [])
+    .map((f, i) => {
+      const ratio = layout?.mounts?.[i]?.scaleRatio ?? 1;
+      return `- Fixture ${f.index}: relative scale factor ${ratio} vs primary (1.0 = normal for room). Prefer modest proportional size.`;
+    })
+    .join("\n");
+
+  const cleanup = analysis?.needsCeilingCleanup
+    ? `- Flatten complex gypsum/coffers to a clean flat white/off-white ceiling before installing.`
+    : `- Keep a simple continuous ceiling; still remove old fixture geometry surgically.`;
+
+  return `
+${base}
+
+SPEED / SINGLE-PASS MODE (do EVERYTHING in one edit):
+1) FIRST remove all existing ceiling lights (canopy, chain, body, hard local shadows).
+2) ${cleanup}
+3) THEN install the new fixtures at LOCKED MOUNT positions below.
+4) Preserve furniture, walls, flooring, windows, decor, camera angle, and perspective.
+
+AUTO LAYOUT CONTEXT (no customer taps):
+- Mount coordinates were chosen by a professional layout planner for a ${analysis?.roomType || "room"}.
+- Treat LOCKED MOUNT percentages as exact canopy positions.
+- Scale guidance:
+${scaleNotes}
+`.trim();
+}
+
+function buildInstallPromptFromFixtures(plan, analysis, layout, { combined = false } = {}) {
+  if (combined) return buildCombinedPrompt(plan, analysis, layout);
   const base = buildGenerationPrompt(plan);
   const scaleNotes = (plan.fixtures || [])
     .map((f, i) => {
@@ -201,6 +237,7 @@ export function createOpenAiVirtualTryRenderer() {
     },
 
     async installFixtures(input) {
+      const combined = Boolean(input.combinedPass);
       const placements = (input.fixtures || []).map((f) => ({
         markerId: f.id,
         x: f.x,
@@ -216,7 +253,6 @@ export function createOpenAiVirtualTryRenderer() {
         persist: false,
       });
 
-      // Apply relative scale hints into plan (prompt appendix uses layout)
       const roomJpeg = await encodeJpeg(input.roomImage, ROOM_MAX_EDGE);
       const meta = await sharp(input.roomImage, { failOn: "none" }).metadata();
       plan.room = { width: meta.width || null, height: meta.height || null };
@@ -239,6 +275,7 @@ export function createOpenAiVirtualTryRenderer() {
         plan,
         input.analysis,
         input.layout,
+        { combined },
       );
       const image = await callImageEdit({
         images: [roomUpload, ...productUploads],
@@ -251,11 +288,13 @@ export function createOpenAiVirtualTryRenderer() {
         mimeType: "image/jpeg",
         engineId: RENDERER_IDS.OPENAI_GPT_IMAGE_1,
         meta: {
-          phase: "install",
+          phase: combined ? "combined" : "install",
           size,
           quality: IMAGE_QUALITY,
+          inputFidelity: INPUT_FIDELITY,
           planId: plan.planId,
           fixtureCount: placements.length,
+          combinedPass: combined,
         },
       };
     },

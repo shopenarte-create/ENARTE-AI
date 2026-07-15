@@ -101,8 +101,8 @@ export async function analyzeRoom(roomImageBuffer, opts = {}) {
 
   const jpeg = await sharp(roomImageBuffer, { failOn: "none" })
     .rotate()
-    .resize(1280, 1280, { fit: "inside", withoutEnlargement: true })
-    .jpeg({ quality: 72, mozjpeg: true })
+    .resize(960, 960, { fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 65, mozjpeg: true })
     .toBuffer();
 
   const styleHint = opts.style

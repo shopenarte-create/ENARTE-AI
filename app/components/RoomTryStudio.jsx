@@ -21,8 +21,8 @@ const STEPS = {
 const PHASE_LABELS = {
   queued: "جاري التحضير...",
   analyzing: "جاري تحليل الغرفة...",
-  preparing: "جاري تنظيف السقف من الإنارة القديمة...",
-  installing: "جاري تركيب الثريات بواقعية...",
+  preparing: "جاري تجهيز الصورة...",
+  installing: "جاري تركيب الثريات...",
   done: "اكتملت الصورة",
   error: "حدث خطأ",
 };
