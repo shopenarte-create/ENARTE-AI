@@ -555,6 +555,37 @@ export default function RoomTryStudio({
               <>
             <div
               style={{
+                marginBottom: 12,
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "rgba(154, 123, 60, 0.1)",
+                border: "1px solid rgba(154, 123, 60, 0.35)",
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: charcoal,
+                  lineHeight: 1.55,
+                }}
+              >
+                صوّر الغرفة بشكل كامل لنتائج أفضل
+              </p>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  fontSize: 13,
+                  color: "#6b6560",
+                  lineHeight: 1.55,
+                }}
+              >
+                اجعل السقف والجدران والأثاث واضحين في الصورة قدر الإمكان — تجنّب الصور القريبة جداً أو الجزء فقط من الغرفة.
+              </p>
+            </div>
+            <div
+              style={{
                 position: "relative",
                 borderRadius: 14,
                 overflow: "hidden",
@@ -584,7 +615,7 @@ export default function RoomTryStudio({
                     fontWeight: 600,
                   }}
                 >
-                  اضغط لرفع صورة الغرفة
+                  ارفع صورة كاملة للغرفة
                 </button>
               )}
             </div>

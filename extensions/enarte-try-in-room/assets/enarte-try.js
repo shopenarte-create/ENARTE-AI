@@ -811,7 +811,7 @@
     sheet.innerHTML =
       '<div class="enarte-try-sheet-handle"></div>' +
       '<p class="enarte-try-sheet-title">اختر مصدر صورة الغرفة</p>' +
-      '<p class="enarte-try-sheet-tip">يرجى التقاط صورة للغرفة بالكامل، وليس منطقة الثريا فقط، للحصول على أفضل نتائج التركيب.</p>' +
+      '<p class="enarte-try-sheet-tip"><strong>مهم:</strong> صوّر الغرفة بشكل كامل (السقف + الجدران + الأثاث) لنتائج أفضل — تجنّب صورة قريبة من الثريا فقط.</p>' +
       '<button type="button" class="enarte-try-chooser-option" data-enarte-camera>📷 Take Photo</button>' +
       '<label class="enarte-try-chooser-option enarte-try-chooser-file" data-enarte-gallery>' +
       '<input type="file" accept="image/*" data-enarte-sheet-gallery />' +
