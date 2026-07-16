@@ -46,6 +46,10 @@ tools/*
 mobile/dist/
 mobile/.expo/
 
+# Large Android APK — hosted via redirect / CI, not git
+public/download/*.apk
+*.apk
+
 # Theme dump clones & live checks (active luxury theme kept intentionally)
 .theme-horizon/
 .theme-password-check/

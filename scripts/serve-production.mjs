@@ -79,6 +79,34 @@ app.use(
 app.use(PROXY_PREFIX, express.static(CLIENT_DIR, { maxAge: "1h" }));
 app.use(express.static("public", { maxAge: "1h" }));
 
+// Direct Android APK download (Expo artifact or local public/download/enarte.apk)
+const LOCAL_APK = path.resolve("public/download/enarte.apk");
+const REMOTE_APK =
+  process.env.ANDROID_APK_URL ||
+  "https://expo.dev/artifacts/eas/tTkArR-SICt8c-xtJHzhI3FFxDXF6aRyp6gypyLIjVU.apk";
+
+app.all(["/download/enarte.apk", "/download/enarte-android.apk"], (req, res) => {
+  const available = fs.existsSync(LOCAL_APK) || Boolean(REMOTE_APK);
+  // HEAD from /app/install must stay same-origin (no redirect) or CORS fails.
+  if (req.method === "HEAD" || req.method === "OPTIONS") {
+    if (!available) return res.status(404).end();
+    res.setHeader("Content-Type", "application/vnd.android.package-archive");
+    res.setHeader("Accept-Ranges", "bytes");
+    return res.status(200).end();
+  }
+  if (req.method !== "GET") return res.status(405).end();
+  if (fs.existsSync(LOCAL_APK)) {
+    res.setHeader("Content-Type", "application/vnd.android.package-archive");
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="enarte.apk"',
+    );
+    return res.sendFile(LOCAL_APK);
+  }
+  if (!REMOTE_APK) return res.status(404).send("APK not available");
+  return res.redirect(302, REMOTE_APK);
+});
+
 // ENARTE mobile web app (Expo static export) at /app
 const MOBILE_WEB_DIR = path.resolve("public/app");
 if (fs.existsSync(MOBILE_WEB_DIR)) {

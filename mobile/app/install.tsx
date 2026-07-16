@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radii, spacing } from "@/src/theme";
 
-/** Direct Android APK download (sideload). Set after EAS preview build. */
+/** Direct Android APK download (sideload). */
 const ANDROID_APK_URL = (
   process.env.EXPO_PUBLIC_ANDROID_APK_URL ||
   "https://enarte-ai-production.up.railway.app/download/enarte.apk"
