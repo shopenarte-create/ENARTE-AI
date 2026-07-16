@@ -42,8 +42,20 @@ function splitName(fullName) {
   };
 }
 
-async function getAdmin(shopHint) {
+async function getAdmin(shopHint, { preferClientCredentials = false } = {}) {
   const shop = normalizeShop(shopHint);
+  const { getClientCredentialsAdmin, clearClientCredentialsTokenCache } =
+    await import("../shopify-admin-client-credentials.server.js");
+
+  if (preferClientCredentials) {
+    try {
+      clearClientCredentialsTokenCache();
+      return await getClientCredentialsAdmin(shop);
+    } catch {
+      // fall through to offline session
+    }
+  }
+
   try {
     if (sessionStorage?.findSessionsByShop) {
       const sessions = await sessionStorage.findSessionsByShop(shop);
@@ -57,11 +69,23 @@ async function getAdmin(shopHint) {
   try {
     return { ...(await unauthenticated.admin(shop)), shop };
   } catch {
-    const { getClientCredentialsAdmin } = await import(
-      "../shopify-admin-client-credentials.server.js"
-    );
     return getClientCredentialsAdmin(shop);
   }
+}
+
+function isDraftOrderAccessDenied(result) {
+  const msgs = [
+    ...(result?.errors || []),
+    result?.reason || "",
+  ]
+    .map((m) => String(m || "").toLowerCase())
+    .join(" ");
+  return (
+    msgs.includes("access denied") &&
+    (msgs.includes("draftordercreate") ||
+      msgs.includes("write_draft_orders") ||
+      msgs.includes("draft order"))
+  );
 }
 
 const DRAFT_ORDER_MUTATION = `#graphql
@@ -93,8 +117,7 @@ const DRAFT_ORDER_MUTATION = `#graphql
  *   shop?: string | null,
  * }} payload
  */
-export async function createShopifyDraftOrder(payload) {
-  const { admin, shop } = await getAdmin(payload.shop);
+async function createDraftWithAdmin(admin, shop, payload) {
   const { firstName, lastName } = splitName(payload.customer?.name);
   const payLabel =
     payload.paymentLabel || paymentLabelAr(payload.paymentMethod);
@@ -204,4 +227,18 @@ export async function createShopifyDraftOrder(payload) {
     draftStatus: draft.status,
     invoiceUrl: draft.invoiceUrl || null,
   };
+}
+
+export async function createShopifyDraftOrder(payload) {
+  // Prefer client credentials so newly granted write_draft_orders apply
+  // even when an older offline session token is still in Prisma.
+  let auth = await getAdmin(payload.shop, { preferClientCredentials: true });
+  let result = await createDraftWithAdmin(auth.admin, auth.shop, payload);
+
+  if (!result.ok && isDraftOrderAccessDenied(result)) {
+    auth = await getAdmin(payload.shop, { preferClientCredentials: false });
+    result = await createDraftWithAdmin(auth.admin, auth.shop, payload);
+  }
+
+  return result;
 }
