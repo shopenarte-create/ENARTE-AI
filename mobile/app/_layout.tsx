@@ -40,8 +40,9 @@ function AuthGate({ children }: { children: ReactNode }) {
     if (!bootDone) return;
     const root = segments[0];
     const onWelcome = root === "welcome";
+    const onInstall = root === "install";
 
-    if (!hasEntered && !onWelcome) {
+    if (!hasEntered && !onWelcome && !onInstall) {
       router.replace("/welcome");
     } else if (hasEntered && onWelcome) {
       router.replace("/(tabs)");
@@ -71,6 +72,7 @@ export default function RootLayout() {
             >
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="welcome" options={{ headerShown: false }} />
+              <Stack.Screen name="install" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="product/[handle]"

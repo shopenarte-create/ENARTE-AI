@@ -8,10 +8,12 @@
   assign app_label = label | default: settings.enarte_app_download_label | default: 'حمّل التطبيق'
   assign ios_url = settings.enarte_app_store_url | strip
   assign android_url = settings.enarte_play_store_url | strip
-  assign web_url = settings.enarte_web_app_url | default: 'https://enarte-ai-production.up.railway.app/download/' | strip
+  assign web_url = settings.enarte_web_app_url | strip
+  if web_url == blank or web_url contains '/download'
+    assign web_url = 'https://enarte-ai-production.up.railway.app/app/install'
+  endif
   assign variant_name = variant | default: 'default'
   assign show_when_empty = show_when_empty | default: true
-  # Prefer install landing page over opening the app directly.
   assign default_href = web_url
   if android_url != blank
     assign default_href = android_url
@@ -111,7 +113,7 @@
       if (isAndroid && androidUrl) return androidUrl;
       if (androidUrl) return androidUrl;
       if (iosUrl) return iosUrl;
-      return webUrl || 'https://enarte-ai-production.up.railway.app/download/';
+      return webUrl || 'https://enarte-ai-production.up.railway.app/app/install';
     }
 
     document.addEventListener(
