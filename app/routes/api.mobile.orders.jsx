@@ -167,6 +167,7 @@ export async function action({ request }) {
         image: item.image || null,
         url: item.url || null,
         variantId: item.variantId || null,
+        variantNumericId: item.variantNumericId || null,
         variantTitle: item.variantTitle || null,
         price: String(item.price ?? ""),
         currency: item.currency || currency,
@@ -248,6 +249,9 @@ export async function action({ request }) {
           ok: Boolean(shopify.ok),
           draftOrderId: shopify.draftOrderId || null,
           draftOrderName: shopify.draftOrderName || null,
+          orderId: shopify.orderId || null,
+          orderName: shopify.orderName || null,
+          completed: Boolean(shopify.completed),
           reason: shopify.reason || null,
         },
         email: {

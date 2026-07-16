@@ -110,6 +110,7 @@ export async function submitMobileOrder(params: {
         image: line.image,
         url: line.url,
         variantId: line.variantId,
+        variantNumericId: line.variantNumericId,
         variantTitle: line.variantTitle,
         price: line.price,
         currency: line.currency,

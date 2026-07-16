@@ -1,5 +1,6 @@
 /**
- * Create Shopify draft orders for mobile COD / CliQ / online leads.
+ * Create Shopify draft orders for mobile COD / CliQ / online leads,
+ * then complete them so they appear under Orders (payment pending).
  */
 
 import { unauthenticated, sessionStorage } from "../../shopify.server.js";
@@ -23,6 +24,9 @@ function normalizeShop(shop) {
 function toVariantGid(variantId) {
   const raw = String(variantId || "").trim();
   if (!raw) return null;
+  if (raw.startsWith("gid://shopify/ProductVariant/")) return raw;
+  // Ignore product GIDs mistaken for variants.
+  if (raw.startsWith("gid://shopify/Product/")) return null;
   if (raw.startsWith("gid://")) return raw;
   const digits = raw.replace(/\D/g, "");
   if (!digits) return null;
@@ -42,20 +46,8 @@ function splitName(fullName) {
   };
 }
 
-async function getAdmin(shopHint, { preferClientCredentials = false } = {}) {
+async function getAdmin(shopHint) {
   const shop = normalizeShop(shopHint);
-  const { getClientCredentialsAdmin, clearClientCredentialsTokenCache } =
-    await import("../shopify-admin-client-credentials.server.js");
-
-  if (preferClientCredentials) {
-    try {
-      clearClientCredentialsTokenCache();
-      return await getClientCredentialsAdmin(shop);
-    } catch {
-      // fall through to offline session
-    }
-  }
-
   try {
     if (sessionStorage?.findSessionsByShop) {
       const sessions = await sessionStorage.findSessionsByShop(shop);
@@ -69,23 +61,11 @@ async function getAdmin(shopHint, { preferClientCredentials = false } = {}) {
   try {
     return { ...(await unauthenticated.admin(shop)), shop };
   } catch {
+    const { getClientCredentialsAdmin } = await import(
+      "../shopify-admin-client-credentials.server.js"
+    );
     return getClientCredentialsAdmin(shop);
   }
-}
-
-function isDraftOrderAccessDenied(result) {
-  const msgs = [
-    ...(result?.errors || []),
-    result?.reason || "",
-  ]
-    .map((m) => String(m || "").toLowerCase())
-    .join(" ");
-  return (
-    msgs.includes("access denied") &&
-    (msgs.includes("draftordercreate") ||
-      msgs.includes("write_draft_orders") ||
-      msgs.includes("draft order"))
-  );
 }
 
 const DRAFT_ORDER_MUTATION = `#graphql
@@ -105,43 +85,71 @@ const DRAFT_ORDER_MUTATION = `#graphql
   }
 `;
 
-/**
- * @param {{
- *   orderId: string,
- *   customer: { name: string, phone: string, governorate: string, address?: string },
- *   items: Array<{ variantId?: string, productTitle?: string, variantTitle?: string, quantity?: number, price?: string }>,
- *   paymentMethod: string,
- *   paymentLabel?: string,
- *   note?: string | null,
- *   totals?: { subtotal?: string, currency?: string, count?: number },
- *   shop?: string | null,
- * }} payload
- */
-async function createDraftWithAdmin(admin, shop, payload) {
-  const { firstName, lastName } = splitName(payload.customer?.name);
-  const payLabel =
-    payload.paymentLabel || paymentLabelAr(payload.paymentMethod);
+const DRAFT_ORDER_COMPLETE = `#graphql
+  mutation MobileDraftOrderComplete($id: ID!) {
+    draftOrderComplete(id: $id, paymentPending: true) {
+      draftOrder {
+        id
+        name
+        order {
+          id
+          name
+          displayFinancialStatus
+        }
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
 
-  const lineItems = (payload.items || [])
+function buildLineItems(items, { forceCustom = false } = {}) {
+  return (items || [])
     .map((item) => {
-      const variantId = toVariantGid(item.variantId);
-      if (!variantId) return null;
+      const quantity = Math.max(1, Number(item.quantity) || 1);
+      const variantId = forceCustom
+        ? null
+        : toVariantGid(item.variantId || item.variantNumericId);
+
+      if (variantId) {
+        return { variantId, quantity };
+      }
+
+      const titleParts = [
+        item.productTitle || item.title || "منتج ENARTE",
+        item.variantTitle && item.variantTitle !== "Default Title"
+          ? `(${item.variantTitle})`
+          : null,
+      ].filter(Boolean);
+
+      const price = Number(item.price);
+      const originalUnitPrice = Number.isFinite(price)
+        ? price.toFixed(2)
+        : String(item.price || "0");
+
       return {
-        variantId,
-        quantity: Math.max(1, Number(item.quantity) || 1),
+        title: titleParts.join(" "),
+        quantity,
+        originalUnitPrice,
+        customAttributes: [
+          item.handle
+            ? { key: "handle", value: String(item.handle) }
+            : null,
+          item.productId
+            ? { key: "product_id", value: String(item.productId) }
+            : null,
+          item.variantId
+            ? { key: "variant_id", value: String(item.variantId) }
+            : null,
+        ].filter(Boolean),
       };
     })
     .filter(Boolean);
+}
 
-  if (!lineItems.length) {
-    return {
-      ok: false,
-      skipped: true,
-      reason: "no_variant_ids",
-      shop,
-    };
-  }
-
+function buildDraftInput(payload, lineItems, payLabel, firstName, lastName) {
   const noteParts = [
     `طلب تطبيق ENARTE ${payload.orderId}`,
     `طريقة الدفع: ${payLabel}`,
@@ -153,7 +161,7 @@ async function createDraftWithAdmin(admin, shop, payload) {
     payload.note ? `ملاحظات الزبون: ${payload.note}` : null,
   ].filter(Boolean);
 
-  const input = {
+  return {
     note: noteParts.join("\n"),
     tags: ["enarte-mobile", `pay-${payload.paymentMethod || "unknown"}`],
     customAttributes: [
@@ -191,16 +199,85 @@ async function createDraftWithAdmin(admin, shop, payload) {
         "Jordan",
     },
     lineItems,
-    // Phone-only customers: leave email empty; merchant contacts via phone.
   };
+}
 
+async function createDraft(admin, input) {
   const response = await admin.graphql(DRAFT_ORDER_MUTATION, {
     variables: { input },
   });
   const json = await response.json();
-  const payloadNode = json?.data?.draftOrderCreate;
-  const userErrors = payloadNode?.userErrors || [];
-  const draft = payloadNode?.draftOrder;
+  return {
+    json,
+    draft: json?.data?.draftOrderCreate?.draftOrder || null,
+    userErrors: json?.data?.draftOrderCreate?.userErrors || [],
+  };
+}
+
+async function completeDraft(admin, draftId) {
+  const response = await admin.graphql(DRAFT_ORDER_COMPLETE, {
+    variables: { id: draftId },
+  });
+  const json = await response.json();
+  const node = json?.data?.draftOrderComplete;
+  return {
+    json,
+    order: node?.draftOrder?.order || null,
+    userErrors: node?.userErrors || [],
+  };
+}
+
+/**
+ * @param {{
+ *   orderId: string,
+ *   customer: { name: string, phone: string, governorate: string, address?: string },
+ *   items: Array<{ variantId?: string, variantNumericId?: string, productTitle?: string, variantTitle?: string, quantity?: number, price?: string }>,
+ *   paymentMethod: string,
+ *   paymentLabel?: string,
+ *   note?: string | null,
+ *   totals?: { subtotal?: string, currency?: string, count?: number },
+ *   shop?: string | null,
+ * }} payload
+ */
+export async function createShopifyDraftOrder(payload) {
+  const { admin, shop } = await getAdmin(payload.shop);
+  const { firstName, lastName } = splitName(payload.customer?.name);
+  const payLabel =
+    payload.paymentLabel || paymentLabelAr(payload.paymentMethod);
+
+  let lineItems = buildLineItems(payload.items, { forceCustom: false });
+  if (!lineItems.length) {
+    lineItems = buildLineItems(payload.items, { forceCustom: true });
+  }
+  if (!lineItems.length) {
+    return {
+      ok: false,
+      skipped: true,
+      reason: "no_line_items",
+      shop,
+    };
+  }
+
+  let { json, draft, userErrors } = await createDraft(
+    admin,
+    buildDraftInput(payload, lineItems, payLabel, firstName, lastName),
+  );
+
+  // Variant unavailable / invalid → retry as custom priced lines so the lead still lands.
+  const variantFailed =
+    !draft?.id &&
+    userErrors.some((e) =>
+      /available|variant|product|inventory|not found/i.test(
+        String(e?.message || ""),
+      ),
+    );
+  if (variantFailed) {
+    lineItems = buildLineItems(payload.items, { forceCustom: true });
+    ({ json, draft, userErrors } = await createDraft(
+      admin,
+      buildDraftInput(payload, lineItems, payLabel, firstName, lastName),
+    ));
+  }
 
   if (json?.errors?.length) {
     return {
@@ -219,6 +296,24 @@ async function createDraftWithAdmin(admin, shop, payload) {
     };
   }
 
+  // Complete → real order under Shopify Orders (payment pending for COD/CliQ).
+  let orderId = null;
+  let orderName = null;
+  let completeErrors = [];
+  try {
+    const completed = await completeDraft(admin, draft.id);
+    if (completed.json?.errors?.length) {
+      completeErrors = completed.json.errors.map((e) => e.message || String(e));
+    } else if (completed.userErrors.length) {
+      completeErrors = completed.userErrors.map((e) => e.message);
+    } else if (completed.order?.id) {
+      orderId = completed.order.id;
+      orderName = completed.order.name || null;
+    }
+  } catch (err) {
+    completeErrors = [err?.message || "complete_failed"];
+  }
+
   return {
     ok: true,
     shop,
@@ -226,19 +321,9 @@ async function createDraftWithAdmin(admin, shop, payload) {
     draftOrderName: draft.name,
     draftStatus: draft.status,
     invoiceUrl: draft.invoiceUrl || null,
+    orderId,
+    orderName,
+    completed: Boolean(orderId),
+    completeErrors: completeErrors.length ? completeErrors : null,
   };
-}
-
-export async function createShopifyDraftOrder(payload) {
-  // Prefer client credentials so newly granted write_draft_orders apply
-  // even when an older offline session token is still in Prisma.
-  let auth = await getAdmin(payload.shop, { preferClientCredentials: true });
-  let result = await createDraftWithAdmin(auth.admin, auth.shop, payload);
-
-  if (!result.ok && isDraftOrderAccessDenied(result)) {
-    auth = await getAdmin(payload.shop, { preferClientCredentials: false });
-    result = await createDraftWithAdmin(auth.admin, auth.shop, payload);
-  }
-
-  return result;
 }
