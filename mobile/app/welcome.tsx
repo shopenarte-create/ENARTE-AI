@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   AppState,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -20,6 +21,15 @@ import { colors, radii, spacing } from "@/src/theme";
 
 WebBrowser.maybeCompleteAuthSession();
 
+function isStandaloneWeb() {
+  if (Platform.OS !== "web" || typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    // @ts-expect-error iOS Safari
+    window.navigator.standalone === true
+  );
+}
+
 export default function WelcomeScreen() {
   const router = useRouter();
   const { ready, hasEntered, continueAsGuest, markSignedIn } = useAuth();
@@ -27,6 +37,22 @@ export default function WelcomeScreen() {
     "google" | "facebook" | "shopify" | "guest" | null
   >(null);
   const awaitingReturn = useRef<SocialProvider | null>(null);
+  const autoEntered = useRef(false);
+
+  // Installed PWA: skip blank/stuck welcome and enter as guest.
+  useEffect(() => {
+    if (!ready || hasEntered || autoEntered.current) return;
+    if (!isStandaloneWeb()) return;
+    autoEntered.current = true;
+    void (async () => {
+      try {
+        await continueAsGuest();
+        router.replace("/(tabs)");
+      } catch {
+        autoEntered.current = false;
+      }
+    })();
+  }, [ready, hasEntered, continueAsGuest, router]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (state) => {
@@ -53,6 +79,15 @@ export default function WelcomeScreen() {
 
   if (ready && hasEntered) {
     return <Redirect href="/(tabs)" />;
+  }
+
+  if (!ready || (isStandaloneWeb() && !hasEntered)) {
+    return (
+      <View style={styles.boot}>
+        <ActivityIndicator color={colors.goldDeep} size="large" />
+        <Text style={styles.bootText}>جاري فتح ENARTE…</Text>
+      </View>
+    );
   }
 
   async function enterApp(provider: SocialProvider) {
@@ -265,4 +300,15 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   disabled: { opacity: 0.55 },
+  boot: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.ivory,
+    gap: 12,
+  },
+  bootText: {
+    color: colors.muted,
+    fontWeight: "700",
+  },
 });

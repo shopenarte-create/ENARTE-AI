@@ -21,6 +21,11 @@ function useRegisterWebServiceWorker() {
     }
     navigator.serviceWorker
       .register("/app/sw.js", { scope: "/app/" })
+      .then((reg) => {
+        // Force activate the network-only worker (fixes blank installed app).
+        reg.update().catch(() => {});
+        if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      })
       .catch(() => {});
   }, []);
 }

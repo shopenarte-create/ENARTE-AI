@@ -1,48 +1,26 @@
-/* ENARTE PWA service worker */
-const CACHE = "enarte-shell-v2";
+/* ENARTE PWA service worker — network-only.
+ * Caching HTML/JS previously caused a blank ivory screen after install.
+ * A fetch handler is still required for Chrome installability.
+ */
+const CACHE = "enarte-shell-v3";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) =>
-        cache.addAll([
-          "/app/",
-          "/app/install",
-          "/app/manifest.webmanifest",
-          "/app/icon-192.png",
-          "/app/icon-512.png",
-        ]).catch(() => undefined),
-      )
-      .then(() => self.skipWaiting()),
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))),
-      )
+      .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
 
 self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  if (req.method !== "GET") return;
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
-  if (!url.pathname.startsWith("/app")) return;
-
-  event.respondWith(
-    fetch(req)
-      .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {});
-        return res;
-      })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match("/app/"))),
-  );
+  // Always hit the network. Do not serve stale app shells.
+  event.respondWith(fetch(event.request));
 });
+
+// Keep CACHE name referenced so future versions can migrate cleanly.
+void CACHE;
