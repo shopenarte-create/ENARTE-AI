@@ -252,6 +252,7 @@ export async function action({ request }) {
           orderId: shopify.orderId || null,
           orderName: shopify.orderName || null,
           completed: Boolean(shopify.completed),
+          completeErrors: shopify.completeErrors || null,
           reason: shopify.reason || null,
         },
         email: {
