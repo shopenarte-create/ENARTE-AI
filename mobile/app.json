@@ -27,7 +27,8 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -56,6 +57,13 @@
     "experiments": {
       "typedRoutes": true,
       "baseUrl": "/app"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "acde9de8-8d4a-4174-8d64-2eeca229ce08"
+      }
+    },
+    "owner": "enarte.shop"
   }
 }
