@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Linking,
@@ -13,112 +13,52 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, radii, spacing } from "@/src/theme";
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+/** Direct Android APK download (sideload). Set after EAS preview build. */
+const ANDROID_APK_URL = (
+  process.env.EXPO_PUBLIC_ANDROID_APK_URL ||
+  "https://enarte-ai-production.up.railway.app/download/enarte.apk"
+).trim();
 
-function registerServiceWorker() {
-  if (Platform.OS !== "web" || typeof navigator === "undefined") {
-    return Promise.resolve(null);
-  }
-  if (!("serviceWorker" in navigator)) return Promise.resolve(null);
-  return navigator.serviceWorker
-    .register("/app/sw.js", { scope: "/app/" })
-    .then((reg) => navigator.serviceWorker.ready.then(() => reg))
-    .catch(() => null);
+function detectPlatform(): "ios" | "android" | "other" {
+  if (Platform.OS !== "web" || typeof navigator === "undefined") return "other";
+  const ua = navigator.userAgent || "";
+  if (/iPhone|iPad|iPod/i.test(ua)) return "ios";
+  if (/Android/i.test(ua)) return "android";
+  return "other";
 }
 
 export default function InstallScreen() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(
-    null,
-  );
-  const [ready, setReady] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const platform = useMemo(() => detectPlatform(), []);
+  const [apkAvailable, setApkAvailable] = useState<boolean | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [platformHint, setPlatformHint] = useState<"ios" | "android" | "other">(
-    "other",
-  );
-  const deferredRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
-    if (Platform.OS !== "web" || typeof window === "undefined") return;
-
-    const ua = navigator.userAgent || "";
-    if (/iPhone|iPad|iPod/i.test(ua)) setPlatformHint("ios");
-    else if (/Android/i.test(ua)) setPlatformHint("android");
-    else setPlatformHint("other");
-
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      // @ts-expect-error iOS Safari
-      window.navigator.standalone === true;
-    if (standalone) {
-      window.location.replace("/app/");
-      return;
-    }
-
-    const onBip = (event: Event) => {
-      event.preventDefault();
-      const bip = event as BeforeInstallPromptEvent;
-      deferredRef.current = bip;
-      setDeferred(bip);
-      setMessage(null);
+    if (Platform.OS !== "web") return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(ANDROID_APK_URL, { method: "HEAD", cache: "no-store" });
+        if (!cancelled) setApkAvailable(res.ok);
+      } catch {
+        if (!cancelled) setApkAvailable(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-    window.addEventListener("beforeinstallprompt", onBip);
-
-    registerServiceWorker().finally(() => setReady(true));
-
-    return () => window.removeEventListener("beforeinstallprompt", onBip);
   }, []);
 
-  async function onInstall() {
-    if (Platform.OS !== "web") {
-      setMessage("افتحوا هذه الصفحة من متصفح الهاتف للتثبيت.");
-      return;
-    }
-
-    setBusy(true);
-    setMessage(null);
-
-    // Ensure SW is ready — Chrome often fires BIP only after that.
-    await registerServiceWorker();
-    await new Promise((r) => setTimeout(r, 400));
-
-    const promptEvent = deferredRef.current || deferred;
-    if (promptEvent) {
-      try {
-        await promptEvent.prompt();
-        const choice = await promptEvent.userChoice;
-        deferredRef.current = null;
-        setDeferred(null);
-        if (choice.outcome === "accepted") {
-          setMessage("تم التثبيت. ستجدون أيقونة ENARTE على الشاشة الرئيسية.");
-        } else {
-          setMessage("تم إلغاء التثبيت. يمكنكم المحاولة مرة أخرى.");
-        }
-      } catch {
-        setMessage("تعذر فتح نافذة التثبيت تلقائياً.");
-      } finally {
-        setBusy(false);
-      }
-      return;
-    }
-
-    setBusy(false);
-
-    if (platformHint === "ios") {
+  function startAndroidDownload() {
+    if (Platform.OS !== "web") return;
+    if (!apkAvailable) {
       setMessage(
-        "على الآيفون من Safari: مشاركة □↑ ← إضافة إلى الشاشة الرئيسية ← إضافة",
+        "ملف التطبيق قيد التجهيز. بعد رفع نسخة Android سيبدأ التحميل مباشرة من هذا الزر.",
       );
       return;
     }
-
-    // Android without BIP (MIUI browser / Chrome criteria not met yet):
-    // open the app shell — after one visit Chrome often enables Install in ⋮ menu.
-    setMessage(
-      "افتحوا التطبيق أولاً من الزر الأسود، ثم من قائمة المتصفح ⋮ اختاروا «تثبيت التطبيق».",
-    );
+    setMessage("جاري بدء التحميل… بعد انتهاء التنزيل افتحوا الملف وثبّتوه.");
+    // Force download / open installer
+    window.location.assign(ANDROID_APK_URL);
   }
 
   return (
@@ -136,19 +76,25 @@ export default function InstallScreen() {
             حمّل التطبيق الآن لتصلك آخر العروض والخصومات والموديلات الحديثة
           </Text>
 
-          <Pressable
-            style={[styles.btnPrimary, busy && styles.disabled]}
-            disabled={busy}
-            onPress={onInstall}
-          >
-            <Text style={styles.btnPrimaryText}>
-              {busy
-                ? "جاري التحضير…"
-                : deferred
-                  ? "تثبيت على الهاتف"
-                  : "تثبيت على الهاتف"}
-            </Text>
-          </Pressable>
+          {platform === "android" || platform === "other" ? (
+            <Pressable style={styles.btnPrimary} onPress={startAndroidDownload}>
+              <Text style={styles.btnPrimaryText}>
+                {apkAvailable === false
+                  ? "التحميل المباشر قريباً"
+                  : "تحميل التطبيق للأندرويد"}
+              </Text>
+            </Pressable>
+          ) : null}
+
+          {platform === "ios" ? (
+            <View style={styles.hint}>
+              <Text style={styles.hintTitle}>آيفون</Text>
+              <Text style={styles.hintBody}>
+                تحميل آيفون يتطلب نشر التطبيق على App Store. حالياً يمكنكم فتح
+                النسخة من المتصفح أو إضافتها للشاشة الرئيسية من Safari.
+              </Text>
+            </View>
+          ) : null}
 
           <Pressable
             style={styles.btnSecondary}
@@ -165,39 +111,9 @@ export default function InstallScreen() {
 
           {message ? <Text style={styles.message}>{message}</Text> : null}
 
-          {platformHint === "ios" ? (
-            <View style={styles.hint}>
-              <Text style={styles.hintTitle}>على الآيفون (Safari)</Text>
-              <Text style={styles.hintBody}>
-                1) اضغطوا زر المشاركة □↑{"\n"}
-                2) اختاروا «إضافة إلى الشاشة الرئيسية»{"\n"}
-                3) ثم اضغطوا «إضافة»
-              </Text>
-            </View>
-          ) : null}
-
-          {platformHint === "android" && !deferred ? (
-            <View style={styles.hint}>
-              <Text style={styles.hintTitle}>إذا لم تظهر نافذة التثبيت</Text>
-              <Text style={styles.hintBody}>
-                1) اضغطوا «فتح التطبيق في المتصفح»{"\n"}
-                2) من Chrome القائمة ⋮ اختاروا «تثبيت التطبيق»{"\n"}
-                3) استخدموا Chrome وليس متصفح الهاتف الافتراضي إن أمكن
-              </Text>
-            </View>
-          ) : null}
-
-          {deferred ? (
-            <Text style={styles.okReady}>
-              {ready
-                ? "جاهز للتثبيت — اضغطوا الزر الذهبي أعلاه"
-                : "جاري تجهيز التثبيت…"}
-            </Text>
-          ) : null}
-
           <Text style={styles.foot}>
-            متوفر حالياً كتطبيق ويب قابل للتثبيت. روابط Google Play و App Store
-            ستُضاف لاحقاً.
+            التحميل المباشر = ملف تطبيق Android (APK). بعد التحميل قد يطلب الهاتف
+            السماح بتثبيت تطبيقات من هذا المصدر.
           </Text>
         </View>
       </ScrollView>
@@ -301,11 +217,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontSize: 14,
   },
-  okReady: {
-    color: colors.goldDeep,
-    fontWeight: "800",
-    textAlign: "center",
-  },
   foot: {
     color: colors.muted,
     textAlign: "center",
@@ -313,5 +224,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
-  disabled: { opacity: 0.55 },
 });
