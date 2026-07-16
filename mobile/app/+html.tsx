@@ -2,6 +2,8 @@ import { ScrollViewStyleReset } from "expo-router/html";
 import type { ReactNode } from "react";
 
 // Web-only root HTML for static export.
+// NOTE: Do not put JS in <script dangerouslySetInnerHTML> here — Expo may
+// emit it as <style> and break service-worker registration.
 export default function Root({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
@@ -18,21 +20,10 @@ export default function Root({ children }: { children: ReactNode }) {
         <meta name="apple-mobile-web-app-title" content="ENARTE" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="manifest" href="/app/manifest.webmanifest" />
-        <link rel="apple-touch-icon" href="/app/icon-192.png" />
+        <link rel="apple-touch-icon" href="/app/apple-touch-icon.png" />
         <link rel="icon" href="/app/favicon.ico" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function () {
-                  navigator.serviceWorker.register('/app/sw.js', { scope: '/app/' }).catch(function () {});
-                });
-              }
-            `,
-          }}
-        />
       </head>
       <body>{children}</body>
     </html>

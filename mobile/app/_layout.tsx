@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, type ReactNode } from "react";
-import { StatusBar } from "react-native";
+import { Platform, StatusBar } from "react-native";
 import "react-native-reanimated";
 import { AuthProvider, useAuth } from "@/src/auth/AuthContext";
 import { CartProvider } from "@/src/cart/CartContext";
@@ -12,6 +12,18 @@ export { ErrorBoundary } from "expo-router";
 
 // Hide splash ASAP — never leave the user on a perpetual splash/loading screen.
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+function useRegisterWebServiceWorker() {
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+      return;
+    }
+    navigator.serviceWorker
+      .register("/app/sw.js", { scope: "/app/" })
+      .catch(() => {});
+  }, []);
+}
 
 function AuthGate({ children }: { children: ReactNode }) {
   const { ready, hasEntered } = useAuth();
@@ -54,8 +66,7 @@ function AuthGate({ children }: { children: ReactNode }) {
 }
 
 export default function RootLayout() {
-  // Avoid I18nManager.forceRTL here — it can remount/reload Expo Go in a loop
-  // and leave the user staring at the loading/splash screen.
+  useRegisterWebServiceWorker();
 
   return (
     <AuthProvider>

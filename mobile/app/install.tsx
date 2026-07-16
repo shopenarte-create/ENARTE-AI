@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Image,
   Linking,
@@ -18,14 +18,28 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+function registerServiceWorker() {
+  if (Platform.OS !== "web" || typeof navigator === "undefined") {
+    return Promise.resolve(null);
+  }
+  if (!("serviceWorker" in navigator)) return Promise.resolve(null);
+  return navigator.serviceWorker
+    .register("/app/sw.js", { scope: "/app/" })
+    .then((reg) => navigator.serviceWorker.ready.then(() => reg))
+    .catch(() => null);
+}
+
 export default function InstallScreen() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(
     null,
   );
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [platformHint, setPlatformHint] = useState<"ios" | "android" | "other">(
     "other",
   );
+  const deferredRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     if (Platform.OS !== "web" || typeof window === "undefined") return;
@@ -46,16 +60,14 @@ export default function InstallScreen() {
 
     const onBip = (event: Event) => {
       event.preventDefault();
-      setDeferred(event as BeforeInstallPromptEvent);
+      const bip = event as BeforeInstallPromptEvent;
+      deferredRef.current = bip;
+      setDeferred(bip);
       setMessage(null);
     };
     window.addEventListener("beforeinstallprompt", onBip);
 
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/app/sw.js", { scope: "/app/" })
-        .catch(() => {});
-    }
+    registerServiceWorker().finally(() => setReady(true));
 
     return () => window.removeEventListener("beforeinstallprompt", onBip);
   }, []);
@@ -66,38 +78,47 @@ export default function InstallScreen() {
       return;
     }
 
-    if (deferred) {
+    setBusy(true);
+    setMessage(null);
+
+    // Ensure SW is ready — Chrome often fires BIP only after that.
+    await registerServiceWorker();
+    await new Promise((r) => setTimeout(r, 400));
+
+    const promptEvent = deferredRef.current || deferred;
+    if (promptEvent) {
       try {
-        await deferred.prompt();
-        const choice = await deferred.userChoice;
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        deferredRef.current = null;
         setDeferred(null);
         if (choice.outcome === "accepted") {
-          setMessage("تم بدء التثبيت. ستجدون ENARTE على الشاشة الرئيسية.");
+          setMessage("تم التثبيت. ستجدون أيقونة ENARTE على الشاشة الرئيسية.");
         } else {
           setMessage("تم إلغاء التثبيت. يمكنكم المحاولة مرة أخرى.");
         }
       } catch {
-        setMessage("تعذر فتح نافذة التثبيت. استخدموا قائمة المتصفح.");
+        setMessage("تعذر فتح نافذة التثبيت تلقائياً.");
+      } finally {
+        setBusy(false);
       }
       return;
     }
 
+    setBusy(false);
+
     if (platformHint === "ios") {
       setMessage(
-        "على الآيفون: اضغطوا مشاركة □↑ ثم «إضافة إلى الشاشة الرئيسية».",
+        "على الآيفون من Safari: مشاركة □↑ ← إضافة إلى الشاشة الرئيسية ← إضافة",
       );
       return;
     }
 
-    if (platformHint === "android") {
-      setMessage(
-        "افتحوا قائمة Chrome ⋮ ثم اختاروا «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».",
-      );
-      // Nudge Chrome: leave and return sometimes helps surface the menu item.
-      return;
-    }
-
-    setMessage("افتحوا الرابط من هاتفكم لتثبيت التطبيق على الشاشة الرئيسية.");
+    // Android without BIP (MIUI browser / Chrome criteria not met yet):
+    // open the app shell — after one visit Chrome often enables Install in ⋮ menu.
+    setMessage(
+      "افتحوا التطبيق أولاً من الزر الأسود، ثم من قائمة المتصفح ⋮ اختاروا «تثبيت التطبيق».",
+    );
   }
 
   return (
@@ -115,9 +136,17 @@ export default function InstallScreen() {
             حمّل التطبيق الآن لتصلك آخر العروض والخصومات والموديلات الحديثة
           </Text>
 
-          <Pressable style={styles.btnPrimary} onPress={onInstall}>
+          <Pressable
+            style={[styles.btnPrimary, busy && styles.disabled]}
+            disabled={busy}
+            onPress={onInstall}
+          >
             <Text style={styles.btnPrimaryText}>
-              {deferred ? "تثبيت على الهاتف" : "تثبيت على الهاتف"}
+              {busy
+                ? "جاري التحضير…"
+                : deferred
+                  ? "تثبيت على الهاتف"
+                  : "تثبيت على الهاتف"}
             </Text>
           </Pressable>
 
@@ -147,15 +176,23 @@ export default function InstallScreen() {
             </View>
           ) : null}
 
-          {platformHint === "android" ? (
+          {platformHint === "android" && !deferred ? (
             <View style={styles.hint}>
-              <Text style={styles.hintTitle}>على الأندرويد (Chrome)</Text>
+              <Text style={styles.hintTitle}>إذا لم تظهر نافذة التثبيت</Text>
               <Text style={styles.hintBody}>
-                1) اضغطوا زر «تثبيت على الهاتف» أعلاه إن ظهرت نافذة التثبيت{"\n"}
-                2) أو من القائمة ⋮ اختاروا «تثبيت التطبيق» / «إضافة إلى الشاشة
-                الرئيسية»
+                1) اضغطوا «فتح التطبيق في المتصفح»{"\n"}
+                2) من Chrome القائمة ⋮ اختاروا «تثبيت التطبيق»{"\n"}
+                3) استخدموا Chrome وليس متصفح الهاتف الافتراضي إن أمكن
               </Text>
             </View>
+          ) : null}
+
+          {deferred ? (
+            <Text style={styles.okReady}>
+              {ready
+                ? "جاهز للتثبيت — اضغطوا الزر الذهبي أعلاه"
+                : "جاري تجهيز التثبيت…"}
+            </Text>
           ) : null}
 
           <Text style={styles.foot}>
@@ -264,6 +301,11 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     fontSize: 14,
   },
+  okReady: {
+    color: colors.goldDeep,
+    fontWeight: "800",
+    textAlign: "center",
+  },
   foot: {
     color: colors.muted,
     textAlign: "center",
@@ -271,4 +313,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
+  disabled: { opacity: 0.55 },
 });
