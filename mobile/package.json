@@ -47,6 +47,7 @@
     "export:web": "node --no-experimental-strip-types ./node_modules/expo/bin/cli export -p web --output-dir dist",
     "build:apk": "node ./scripts/build-apk-readme.mjs && npx eas-cli build --platform android --profile preview",
     "eas:preview:android": "npx eas-cli build --platform android --profile preview",
+    "eas:preview:ios": "npx eas-cli build --platform ios --profile preview"
   },
   "private": true
 }
