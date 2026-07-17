@@ -326,7 +326,8 @@ export default function AssistantChatApp({
           });
         }
         if (data.trainingEnded) {
-          clearStoredTrainKey();
+          // Pause for this visit only — keep the device remembered so training
+          // resumes automatically the next time the assistant is opened here.
           clearTrainParamFromUrl();
           setTrainKey(null);
         }

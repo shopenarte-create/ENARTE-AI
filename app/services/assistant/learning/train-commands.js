@@ -103,8 +103,8 @@ export function trainerConfirmation(kind, { answer, question } = {}, locale = "a
   const useEn = String(locale || "ar").toLowerCase().startsWith("en");
   if (kind === "stop") {
     return useEn
-      ? "Training finished. I saved what you taught me and returned to normal mode."
-      : "انتهى التدريب. حفظت كل ما علّمتني ورجعت للوضع العادي.";
+      ? "Training paused. Everything you taught is saved. When you come back here, training will resume automatically."
+      : "تم إيقاف التدريب مؤقتاً. كل ما علّمتني محفوظ. لما ترجع تفتح المساعد من هون، التدريب يكمل تلقائياً.";
   }
   if (kind === "approve") {
     return useEn

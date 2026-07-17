@@ -413,7 +413,7 @@ export async function sendChatMessage(input = {}) {
               smartButtonSet: null,
               escalate: false,
               escalationReason: null,
-              note: "Trainer ended training mode",
+              note: "Trainer paused training for this visit",
             }),
             state: getConversationState(liveStore.session.id),
             transition: null,
