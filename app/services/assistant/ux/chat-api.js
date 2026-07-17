@@ -28,6 +28,16 @@ import {
 } from "../brain/index.js";
 import { validateMessagePayload, validateSessionId } from "../utils/validation.js";
 import { logAssistant, logAssistantError } from "../utils/logging.js";
+import {
+  findTaughtAnswer,
+  upsertTaughtAnswer,
+  verifyTrainKey,
+} from "../learning/taught-answers.js";
+import {
+  parseTrainerCommand,
+  trainerConfirmation,
+  trainerNeedsContext,
+} from "../learning/train-commands.js";
 
 /** @type {Map<string, object>} */
 const sessions = new Map();
@@ -77,6 +87,37 @@ function welcomeActions(locale) {
       workflowId: a.workflowId,
     });
   });
+}
+
+/**
+ * Find the most recent real question/answer pair in the transcript so a trainer
+ * can approve or correct "the last answer" by talking. Skips menus, photos, and
+ * previous trainer command bubbles.
+ */
+function findLastQnA(store) {
+  const messages = store?.messages || [];
+  let answer = null;
+  let answerIndex = -1;
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const m = messages[i];
+    if (m.role !== "assistant") continue;
+    if (m.meta?.trainerCommand) continue;
+    if (["welcome", "support_offer"].includes(m.type)) continue;
+    if (!String(m.content || "").trim()) continue;
+    answer = m;
+    answerIndex = i;
+    break;
+  }
+  let question = null;
+  for (let i = answerIndex - 1; i >= 0; i -= 1) {
+    const m = messages[i];
+    if (m.role !== "user") continue;
+    if (m.meta?.trainerCommand) continue;
+    if (!String(m.content || "").trim()) continue;
+    question = m;
+    break;
+  }
+  return { question, answer };
 }
 
 /** Hide earlier Smart Action Buttons so the conversation stays continuous. */
@@ -319,7 +360,271 @@ export async function sendChatMessage(input = {}) {
     ...(isChoiceAction ? { choiceId: payload.actionId } : {}),
   };
 
+  const trainerMode =
+    !payload.actionId &&
+    !payload.image &&
+    Boolean(String(userContent || "").trim()) &&
+    verifyTrainKey(input.trainKey);
+
   try {
+    // Train mode: interpret plain messages as teaching instructions.
+    if (trainerMode) {
+      const command = parseTrainerCommand(userContent);
+      if (command) {
+        const userMessage = createMessage({
+          role: "user",
+          type: "text",
+          content: userContent,
+          meta: Object.freeze({
+            trainerCommand: true,
+            decisionKind: `trainer_${command.kind}`,
+          }),
+        });
+        liveStore.messages.push(userMessage);
+        queuePersistMessage(liveStore.session.id, userMessage, null);
+
+        if (command.kind === "stop") {
+          const confirmMessage = createMessage({
+            role: "assistant",
+            type: "text",
+            content: trainerConfirmation("stop", {}, locale),
+            meta: Object.freeze({
+              trainerCommand: true,
+              trainingEnded: true,
+              teachable: false,
+            }),
+          });
+          liveStore.messages.push(confirmMessage);
+          queuePersistMessage(liveStore.session.id, confirmMessage, null);
+
+          return Object.freeze({
+            ok: true,
+            trainingEnded: true,
+            session: publicSession(liveStore),
+            userMessage,
+            messages: Object.freeze([confirmMessage]),
+            transcript: Object.freeze([...liveStore.messages]),
+            history: Object.freeze([...liveStore.messages]),
+            decision: Object.freeze({
+              kind: "trainer_stop",
+              workflowId: null,
+              needsClarification: false,
+              showSmartButtons: false,
+              smartButtonSet: null,
+              escalate: false,
+              escalationReason: null,
+              note: "Trainer ended training mode",
+            }),
+            state: getConversationState(liveStore.session.id),
+            transition: null,
+            turn: Object.freeze({
+              ok: true,
+              route: null,
+              action: "reply",
+              leafAction: "reply",
+            }),
+            actions: Object.freeze([]),
+            memorySize: readMemory(liveStore.session.id).length,
+          });
+        }
+
+        let question = command.question || null;
+        let answer = command.answer || null;
+
+        if (command.kind === "approve" || command.kind === "correct") {
+          const lastQnA = findLastQnA(liveStore);
+          question = question || lastQnA.question?.content || null;
+          if (command.kind === "approve") {
+            answer = lastQnA.answer?.content || null;
+          }
+        }
+
+        if (!question || !answer) {
+          const askMessage = createMessage({
+            role: "assistant",
+            type: "text",
+            content: trainerNeedsContext(locale),
+            meta: Object.freeze({ trainerCommand: true, teachable: false }),
+          });
+          liveStore.messages.push(askMessage);
+          queuePersistMessage(liveStore.session.id, askMessage, null);
+          return Object.freeze({
+            ok: true,
+            session: publicSession(liveStore),
+            userMessage,
+            messages: Object.freeze([askMessage]),
+            transcript: Object.freeze([...liveStore.messages]),
+            history: Object.freeze([...liveStore.messages]),
+            decision: Object.freeze({
+              kind: `trainer_${command.kind}`,
+              workflowId: null,
+              needsClarification: true,
+              showSmartButtons: false,
+              smartButtonSet: null,
+              escalate: false,
+              escalationReason: null,
+              note: "Trainer command missing question/answer context",
+            }),
+            state: getConversationState(liveStore.session.id),
+            transition: null,
+            turn: Object.freeze({ ok: true, route: null, action: "clarify", leafAction: "clarify" }),
+            actions: Object.freeze([]),
+            memorySize: readMemory(liveStore.session.id).length,
+          });
+        }
+
+        const saved = await upsertTaughtAnswer({
+          shop: liveStore.session.shop,
+          question,
+          answer,
+          locale,
+          conversationId: liveStore.session.id,
+          sourceMessageId: userMessage.id,
+        });
+
+        const confirmContent = saved.ok
+          ? trainerConfirmation(command.kind, { question, answer }, locale)
+          : locale.toLowerCase().startsWith("en")
+            ? "Could not save that — please try again."
+            : "تعذّر الحفظ — حاول مرة أخرى.";
+
+        const confirmMessage = createMessage({
+          role: "assistant",
+          type: "text",
+          content: confirmContent,
+          meta: Object.freeze({
+            trainerCommand: true,
+            teachable: false,
+            taught: saved.ok,
+            taughtAnswerId: saved.answer?.id || null,
+          }),
+        });
+        liveStore.messages.push(confirmMessage);
+        queuePersistMessage(liveStore.session.id, confirmMessage, null);
+
+        logAssistant("turn.trainer_command", {
+          conversationId: liveStore.session.id,
+          kind: command.kind,
+          persisted: Boolean(saved.persisted),
+        });
+
+        return Object.freeze({
+          ok: true,
+          session: publicSession(liveStore),
+          userMessage,
+          messages: Object.freeze([confirmMessage]),
+          transcript: Object.freeze([...liveStore.messages]),
+          history: Object.freeze([...liveStore.messages]),
+          decision: Object.freeze({
+            kind: `trainer_${command.kind}`,
+            workflowId: null,
+            needsClarification: false,
+            showSmartButtons: false,
+            smartButtonSet: null,
+            escalate: false,
+            escalationReason: null,
+            note: "Trainer taught answer via conversation",
+          }),
+          state: getConversationState(liveStore.session.id),
+          transition: null,
+          turn: Object.freeze({ ok: true, route: null, action: "reply", leafAction: "reply" }),
+          actions: Object.freeze([]),
+          memorySize: readMemory(liveStore.session.id).length,
+        });
+      }
+    }
+
+    // Prefer human-taught answers for free-text questions (not menu/photo flows).
+    // Skip the taught-answer shortcut for the trainer so they can test/retrain.
+    const canUseTaught =
+      !trainerMode &&
+      !payload.actionId &&
+      !payload.image &&
+      !input.escalate &&
+      Boolean(String(userContent || "").trim());
+
+    if (canUseTaught) {
+      const taught = await findTaughtAnswer({
+        shop: liveStore.session.shop,
+        question: userContent,
+        locale,
+      });
+      if (taught.match?.answer) {
+        const userMessage = createMessage({
+          role: "user",
+          type: "text",
+          content: userContent,
+          meta: Object.freeze({
+            actionId: null,
+            decisionKind: "taught_answer",
+            taughtAnswerId: taught.match.id,
+          }),
+        });
+        liveStore.messages.push(userMessage);
+        queuePersistMessage(liveStore.session.id, userMessage, null);
+        retireHistoricalActions(liveStore);
+
+        const taughtMessage = createMessage({
+          role: "assistant",
+          type: "text",
+          content: taught.match.answer,
+          meta: Object.freeze({
+            teachable: true,
+            taught: true,
+            taughtAnswerId: taught.match.id,
+            question: userContent,
+            needsTeach: false,
+          }),
+        });
+        liveStore.messages.push(taughtMessage);
+        queuePersistMessage(liveStore.session.id, taughtMessage, null);
+        appendMemory(liveStore.session.id, {
+          role: "user",
+          content: userContent,
+        });
+        appendMemory(liveStore.session.id, {
+          role: "assistant",
+          content: taught.match.answer,
+          metadata: Object.freeze({ taught: true }),
+        });
+
+        logAssistant("turn.taught_answer", {
+          conversationId: liveStore.session.id,
+          taughtAnswerId: taught.match.id,
+          score: taught.score,
+        });
+
+        return Object.freeze({
+          ok: true,
+          session: publicSession(liveStore),
+          userMessage,
+          messages: Object.freeze([taughtMessage]),
+          transcript: Object.freeze([...liveStore.messages]),
+          history: Object.freeze([...liveStore.messages]),
+          decision: Object.freeze({
+            kind: "taught_answer",
+            workflowId: null,
+            needsClarification: false,
+            showSmartButtons: false,
+            smartButtonSet: null,
+            escalate: false,
+            escalationReason: null,
+            note: "Human-approved taught answer",
+          }),
+          state: getConversationState(liveStore.session.id),
+          transition: null,
+          turn: Object.freeze({
+            ok: true,
+            route: null,
+            action: "reply",
+            leafAction: "reply",
+          }),
+          actions: Object.freeze([]),
+          memorySize: readMemory(liveStore.session.id).length,
+        });
+      }
+    }
+
     const decision = decide({
       conversationId: liveStore.session.id,
       state,
@@ -483,6 +788,22 @@ export async function sendChatMessage(input = {}) {
     ).map((m, index, arr) => {
       const isLast = index === arr.length - 1;
       const localActions = Array.isArray(m.actions) ? m.actions : null;
+      const content = m.content ?? null;
+      const leafAction =
+        turn.workflowResult?.delegated?.action || turn.workflowResult?.action;
+      const isOutOfDomain = Boolean(
+        decision.outOfDomain ||
+          turn.workflowResult?.data?.outOfDomain ||
+          turn.workflowResult?.delegated?.data?.outOfDomain,
+      );
+      const needsTeach =
+        Boolean(userContent) &&
+        !payload.actionId &&
+        !payload.image &&
+        (isOutOfDomain ||
+          !String(content || "").trim() ||
+          leafAction === "placeholder");
+
       return createMessage({
         ...m,
         actions:
@@ -495,6 +816,10 @@ export async function sendChatMessage(input = {}) {
           ...(m.meta || {}),
           workflowId: decision.workflowId,
           openCamera: false,
+          teachable: Boolean(userContent) && !payload.image,
+          question: userContent || null,
+          needsTeach,
+          taught: false,
         }),
       });
     });

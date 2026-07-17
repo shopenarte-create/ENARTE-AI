@@ -28,18 +28,20 @@ export async function loader({ request }) {
   const continueChat =
     url.searchParams.get("continue") === "1" ||
     url.searchParams.get("continue") === "true";
+  const trainKey = url.searchParams.get("train") || null;
 
-  return { shop, locale, action, continueChat };
+  return { shop, locale, action, continueChat, trainKey };
 }
 
 export default function AssistantRoute() {
-  const { shop, locale, action, continueChat } = useLoaderData();
+  const { shop, locale, action, continueChat, trainKey } = useLoaderData();
   return (
     <AssistantChatApp
       shop={shop}
       locale={locale}
       initialAction={action}
       continueChat={continueChat}
+      trainKey={trainKey}
     />
   );
 }

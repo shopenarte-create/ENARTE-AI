@@ -67,16 +67,57 @@ function storeSessionId(shop, id) {
   }
 }
 
+const TRAIN_KEY_STORAGE = "enarte_assistant_train_key";
+
+function readStoredTrainKey() {
+  try {
+    return window.localStorage.getItem(TRAIN_KEY_STORAGE) || null;
+  } catch {
+    return null;
+  }
+}
+
+function persistTrainKey(key) {
+  try {
+    if (key) window.localStorage.setItem(TRAIN_KEY_STORAGE, key);
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function clearStoredTrainKey() {
+  try {
+    window.localStorage.removeItem(TRAIN_KEY_STORAGE);
+  } catch {
+    // ignore
+  }
+}
+
+function clearTrainParamFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("train")) return;
+    url.searchParams.delete("train");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  } catch {
+    // ignore
+  }
+}
+
 function readBootParams() {
   if (typeof window === "undefined") {
-    return { action: null, continueChat: false };
+    return { action: null, continueChat: false, trainKey: null, trainOff: false };
   }
   const url = new URL(window.location.href);
+  const rawTrain = url.searchParams.get("train");
+  const trainOff = rawTrain === "off" || rawTrain === "0";
   return {
     action: url.searchParams.get("action") || null,
     continueChat:
       url.searchParams.get("continue") === "1" ||
       url.searchParams.get("continue") === "true",
+    trainKey: trainOff ? null : rawTrain || null,
+    trainOff,
   };
 }
 
@@ -118,6 +159,7 @@ export default function AssistantChatApp({
   locale = "ar",
   initialAction = null,
   continueChat = false,
+  trainKey: trainKeyProp = null,
 }) {
   const bootParams = useMemo(() => {
     const fromUrl = readBootParams();
@@ -126,6 +168,25 @@ export default function AssistantChatApp({
       continueChat: continueChat || fromUrl.continueChat,
     };
   }, [initialAction, continueChat]);
+
+  // Train mode is remembered per-device: activate once via the training link,
+  // then it stays on for this browser. Customers never see the controls.
+  const [trainKey, setTrainKey] = useState(null);
+  useEffect(() => {
+    const fromUrl = readBootParams();
+    if (fromUrl.trainOff) {
+      clearStoredTrainKey();
+      setTrainKey(null);
+      return;
+    }
+    const key = trainKeyProp || fromUrl.trainKey || readStoredTrainKey();
+    if (key) {
+      persistTrainKey(key);
+      setTrainKey(key);
+    }
+  }, [trainKeyProp]);
+
+  const trainMode = Boolean(trainKey);
 
   const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -190,7 +251,10 @@ export default function AssistantChatApp({
       try {
         const response = await fetch(enarteApiUrl("/api/assistant/messages"), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(trainKey ? { "X-Enarte-Train-Key": trainKey } : {}),
+          },
           body: JSON.stringify({
             sessionId,
             message,
@@ -200,6 +264,7 @@ export default function AssistantChatApp({
             locale,
             shop,
             escalate: Boolean(escalate),
+            trainKey: trainKey || undefined,
           }),
         });
         let data = await readJson(response);
@@ -228,7 +293,10 @@ export default function AssistantChatApp({
             }
             const retry = await fetch(enarteApiUrl("/api/assistant/messages"), {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                ...(trainKey ? { "X-Enarte-Train-Key": trainKey } : {}),
+              },
               body: JSON.stringify({
                 sessionId: fresh.session.id,
                 message,
@@ -238,6 +306,7 @@ export default function AssistantChatApp({
                 locale,
                 shop,
                 escalate: Boolean(escalate),
+                trainKey: trainKey || undefined,
               }),
             });
             data = await readJson(retry);
@@ -255,6 +324,11 @@ export default function AssistantChatApp({
               ...(data.messages || []),
             ];
           });
+        }
+        if (data.trainingEnded) {
+          clearStoredTrainKey();
+          clearTrainParamFromUrl();
+          setTrainKey(null);
         }
         if (!data.ok && !data.messages?.length && !data.transcript) {
           setError(data.error || "send_failed");
@@ -282,7 +356,7 @@ export default function AssistantChatApp({
         bumpStick(true);
       }
     },
-    [sessionId, busy, locale, dir, bumpStick, shop],
+    [sessionId, busy, locale, dir, bumpStick, shop, trainKey],
   );
 
   const boot = useCallback(async () => {
@@ -447,6 +521,79 @@ export default function AssistantChatApp({
     [send],
   );
 
+  const teachSave = useCallback(
+    async ({ messageId, question, answer, action }) => {
+      if (!trainKey) return false;
+
+      let resolvedQuestion = String(question || "").trim();
+      if (!resolvedQuestion) {
+        const idx = messages.findIndex((m) => m.id === messageId);
+        for (let i = idx - 1; i >= 0; i -= 1) {
+          if (messages[i]?.role === "user" && messages[i]?.content) {
+            resolvedQuestion = String(messages[i].content).trim();
+            break;
+          }
+        }
+      }
+      if (!resolvedQuestion) return false;
+
+      const response = await fetch(enarteApiUrl("/api/assistant/teach"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Enarte-Train-Key": trainKey,
+        },
+        body: JSON.stringify({
+          action,
+          shop,
+          locale,
+          sessionId,
+          messageId,
+          question: resolvedQuestion,
+          answer,
+          trainKey,
+        }),
+      });
+      const data = await readJson(response);
+      if (!data?.ok) return false;
+
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (m.id !== messageId) return m;
+          return {
+            ...m,
+            content: answer,
+            meta: {
+              ...(m.meta || {}),
+              needsTeach: false,
+              taught: true,
+              approvedLocal: true,
+              teachable: true,
+              question: resolvedQuestion,
+              taughtAnswerId: data.answer?.id || m.meta?.taughtAnswerId || null,
+            },
+          };
+        }),
+      );
+      bumpStick(true);
+      return true;
+    },
+    [trainKey, shop, locale, sessionId, bumpStick, messages],
+  );
+
+  const onTeachApprove = useCallback(
+    (payload) => teachSave({ ...payload, action: "approve" }),
+    [teachSave],
+  );
+  const onTeachCorrect = useCallback(
+    (payload) => teachSave({ ...payload, action: "correct" }),
+    [teachSave],
+  );
+  const onTeachNew = useCallback(
+    (payload) => teachSave({ ...payload, action: "teach" }),
+    [teachSave],
+  );
+
   const composerReady = Boolean(sessionId) && !booting;
 
   return (
@@ -463,6 +610,13 @@ export default function AssistantChatApp({
                   ? "مستشار إضاءة ومبيعات"
                   : "Lighting sales consultant"}
               </p>
+              {trainMode ? (
+                <p className="ea-train-badge">
+                  {dir === "rtl"
+                    ? "وضع التدريب — ✓ اعتماد · ✎ تعديل"
+                    : "Train mode — ✓ approve · ✎ edit"}
+                </p>
+              ) : null}
             </div>
             <button
               type="button"
@@ -484,6 +638,10 @@ export default function AssistantChatApp({
               actionsDisabled={busy || booting}
               stickyScrollToken={stickToken}
               forceStickToken={forceStickToken}
+              trainMode={trainMode}
+              onTeachApprove={onTeachApprove}
+              onTeachCorrect={onTeachCorrect}
+              onTeachNew={onTeachNew}
               onAction={(action) => {
                 if (String(action?.id || "").startsWith("choice:")) {
                   send({
@@ -636,6 +794,16 @@ export default function AssistantChatApp({
           margin: 0.35rem 0 0;
           color: rgba(28, 45, 58, 0.68);
           font-size: 0.9rem;
+        }
+        .ea-train-badge {
+          margin: 0.45rem 0 0;
+          display: inline-block;
+          padding: 0.25rem 0.55rem;
+          border-radius: 999px;
+          background: rgba(154, 115, 64, 0.12);
+          color: #9a7340;
+          font-size: 0.72rem;
+          font-weight: 700;
         }
         .ea-support-trigger {
           appearance: none;

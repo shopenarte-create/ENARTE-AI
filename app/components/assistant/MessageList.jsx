@@ -7,10 +7,9 @@
 
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-
 import SmartActionGrid from "./SmartActionGrid.jsx";
-
 import PhotoPrompt from "./PhotoPrompt.jsx";
+import TeachControls from "./TeachControls.jsx";
 
 
 
@@ -139,6 +138,14 @@ export default function MessageList({
   stickyScrollToken = 0,
 
   forceStickToken = 0,
+
+  trainMode = false,
+
+  onTeachApprove,
+
+  onTeachCorrect,
+
+  onTeachNew,
 
 }) {
 
@@ -321,6 +328,19 @@ export default function MessageList({
 
                 />
 
+              ) : null}
+
+              {trainMode &&
+              !isUser &&
+              (msg.meta?.teachable || msg.meta?.needsTeach) ? (
+                <TeachControls
+                  message={msg}
+                  locale={locale}
+                  disabled={actionsDisabled}
+                  onApprove={onTeachApprove}
+                  onCorrect={onTeachCorrect}
+                  onTeach={onTeachNew}
+                />
               ) : null}
 
             </div>

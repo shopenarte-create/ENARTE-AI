@@ -46,6 +46,7 @@ export async function action({ request }) {
     image: body.image,
     escalate: body.escalate,
     transitionEvent: body.transitionEvent,
+    trainKey: body.trainKey || request.headers.get("X-Enarte-Train-Key"),
   });
 
   const status = result.ok

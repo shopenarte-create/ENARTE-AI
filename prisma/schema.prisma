@@ -98,3 +98,24 @@ model AssistantEvent {
   @@index([conversationId, createdAt])
   @@map("assistant_event")
 }
+
+/// Human-approved Q&A taught via conversation training mode.
+/// When a matching question appears later, this answer is preferred over the LLM.
+model AssistantTaughtAnswer {
+  id             String   @id @default(cuid())
+  shop           String
+  locale         String   @default("ar")
+  question       String
+  questionNorm   String
+  answer         String
+  status         String   @default("approved")
+  conversationId String?
+  sourceMessageId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([shop, questionNorm])
+  @@index([shop, locale, status])
+  @@index([shop, updatedAt])
+  @@map("assistant_taught_answer")
+}
