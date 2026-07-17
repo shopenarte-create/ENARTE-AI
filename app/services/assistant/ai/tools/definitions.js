@@ -5,6 +5,7 @@
 
 export const ASSISTANT_TOOL_NAMES = Object.freeze({
   READ_KNOWLEDGE: "read_knowledge",
+  LOOKUP_TAUGHT_ANSWER: "lookup_taught_answer",
   SEARCH_CATALOG: "search_catalog",
   RECOMMEND_PRODUCTS: "recommend_products",
   RUN_WORKFLOW: "run_workflow",
@@ -33,6 +34,23 @@ export const ASSISTANT_RESPONSES_TOOLS = Object.freeze([
         },
       },
       required: ["moduleId"],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: "function",
+    name: ASSISTANT_TOOL_NAMES.LOOKUP_TAUGHT_ANSWER,
+    description:
+      "Look up a human-approved trained answer for this shop. Use FIRST for FAQ-style questions (delivery, warranty, hours, policies, pricing rules). If a match is found, use that answer verbatim — do not invent or rewrite it.",
+    parameters: {
+      type: "object",
+      properties: {
+        question: {
+          type: "string",
+          description: "The customer question to match against trained answers.",
+        },
+      },
+      required: ["question"],
       additionalProperties: false,
     },
   },

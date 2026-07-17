@@ -572,12 +572,14 @@ export default function AssistantChatApp({
               teachable: true,
               question: resolvedQuestion,
               taughtAnswerId: data.answer?.id || m.meta?.taughtAnswerId || null,
+              persisted: data.persisted !== false,
+              persistNote: data.note || null,
             },
           };
         }),
       );
       bumpStick(true);
-      return true;
+      return { ok: true, persisted: data.persisted !== false };
     },
     [trainKey, shop, locale, sessionId, bumpStick, messages],
   );

@@ -18,14 +18,23 @@ export default function TeachControls({
   const [draft, setDraft] = useState(
     message?.meta?.needsTeach ? "" : String(message?.content || ""),
   );
-  const [status, setStatus] = useState(null); // approved | saving | error
+  const [status, setStatus] = useState(null); // approved | saving | error | temp
   const [busy, setBusy] = useState(false);
 
   if (!message || message.role !== "assistant") return null;
   if (message.meta?.approvedLocal) {
+    const temp = message.meta?.persisted === false;
     return (
-      <p className="ea-teach-status ea-teach-status--ok">
-        {useEn ? "Approved — will be used next time." : "مُعتمد — سيُستخدم في المرات القادمة."}
+      <p
+        className={`ea-teach-status ${temp ? "ea-teach-status--err" : "ea-teach-status--ok"}`}
+      >
+        {temp
+          ? useEn
+            ? "Saved temporarily only — not on mobile yet."
+            : "حُفظ مؤقتاً فقط — لسا ما وصل للموبايل."
+          : useEn
+            ? "Approved — saved on server for all devices."
+            : "مُعتمد — محفوظ على السيرفر لكل الأجهزة."}
       </p>
     );
   }
@@ -46,14 +55,15 @@ export default function TeachControls({
     try {
       const fn =
         kind === "teach" ? onTeach : kind === "correct" ? onCorrect : onApprove;
-      const ok = await fn?.({
+      const result = await fn?.({
         messageId: message.id,
         question,
         answer,
         originalAnswer: message.content || "",
       });
+      const ok = result === true || result?.ok === true;
       if (ok) {
-        setStatus("approved");
+        setStatus(result?.persisted === false ? "temp" : "approved");
         setEditing(false);
         setDraft(answer);
       } else {
@@ -161,7 +171,16 @@ export default function TeachControls({
       ) : null}
       {status === "approved" ? (
         <p className="ea-teach-status ea-teach-status--ok">
-          {useEn ? "Approved — will be used next time." : "مُعتمد — سيُستخدم في المرات القادمة."}
+          {useEn
+            ? "Approved — saved on server for all devices."
+            : "مُعتمد — محفوظ على السيرفر لكل الأجهزة."}
+        </p>
+      ) : null}
+      {status === "temp" ? (
+        <p className="ea-teach-status ea-teach-status--err">
+          {useEn
+            ? "Saved temporarily only — not shared to mobile yet."
+            : "حُفظ مؤقتاً فقط — لسا ما وصل للموبايل."}
         </p>
       ) : null}
       {status === "error" ? (

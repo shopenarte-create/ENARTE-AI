@@ -14,6 +14,7 @@ import {
 import { ASSISTANT_TOOL_NAMES } from "./definitions.js";
 import { mergeConversationSlots } from "../../workflows/_catalog-independent-consult.js";
 import { isProductWithinBudget } from "../../catalog/budget-constraint.js";
+import { findTaughtAnswer } from "../../learning/taught-answers.js";
 
 const ALLOWED_WORKFLOWS = new Set([
   "general_chat",
@@ -102,6 +103,33 @@ export async function runAssistantTool(name, args = {}, ctx = {}, options = {}) 
         moduleId: args.moduleId,
         content: record?.data?.content || record?.content || null,
         status: record?.status || null,
+      });
+    }
+
+    case ASSISTANT_TOOL_NAMES.LOOKUP_TAUGHT_ANSWER: {
+      const question = String(args.question || options.fallbackMessage || "").trim();
+      const taught = await findTaughtAnswer({
+        shop: ctx?.shop || null,
+        question,
+        locale,
+      });
+      if (!taught.match?.answer) {
+        return Object.freeze({
+          ok: false,
+          found: false,
+          score: taught.score || 0,
+          source: taught.source || null,
+          total: taught.total || 0,
+        });
+      }
+      return Object.freeze({
+        ok: true,
+        found: true,
+        question: taught.match.question,
+        answer: taught.match.answer,
+        score: taught.score,
+        source: taught.source,
+        useVerbatim: true,
       });
     }
 

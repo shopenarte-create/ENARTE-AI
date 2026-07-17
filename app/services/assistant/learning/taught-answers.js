@@ -1,24 +1,41 @@
 /**
  * Taught answers — human-approved Q&A used as preferred truth over the LLM.
- * Train mode: approve ✓, correct ✎, or teach when there was no answer.
+ * Always persists to Postgres when available so web, mobile, and app share one brain.
  */
 
 import prisma from "../../../db.server.js";
+import { logAssistant, logAssistantError } from "../utils/logging.js";
 
 /** @type {Map<string, object>} */
 const memoryStore = new Map();
 
-function memoryKey(shop, questionNorm) {
-  return `${String(shop || "").toLowerCase()}::${questionNorm}`;
+export function normalizeShop(shop = "") {
+  return String(shop || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
 }
 
 export function normalizeQuestion(text = "") {
   return String(text || "")
     .toLowerCase()
     .normalize("NFKC")
+    // Arabic alef / teh marbuta / alef maqsura variants
+    .replace(/[أإآٱ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/ى/g, "ي")
+    .replace(/ؤ/g, "و")
+    .replace(/ئ/g, "ي")
+    // Strip Arabic diacritics / tatweel
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
     .replace(/[؟?!.،,;:]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function memoryKey(shop, questionNorm) {
+  return `${normalizeShop(shop)}::${questionNorm}`;
 }
 
 function tokens(norm) {
@@ -49,6 +66,7 @@ function toPublic(row) {
     shop: row.shop,
     locale: row.locale,
     question: row.question,
+    questionNorm: row.questionNorm || normalizeQuestion(row.question),
     answer: row.answer,
     status: row.status,
     conversationId: row.conversationId || null,
@@ -58,20 +76,29 @@ function toPublic(row) {
   });
 }
 
+function dbReady() {
+  return Boolean(
+    prisma?.assistantTaughtAnswer &&
+      typeof prisma.assistantTaughtAnswer.findMany === "function",
+  );
+}
+
 async function listFromDb(shop) {
+  if (!dbReady()) return null;
   try {
     return await prisma.assistantTaughtAnswer.findMany({
-      where: { shop, status: "approved" },
+      where: { shop: normalizeShop(shop), status: "approved" },
       orderBy: { updatedAt: "desc" },
       take: 500,
     });
-  } catch {
+  } catch (error) {
+    logAssistantError("taught.list_failed", error, { shop });
     return null;
   }
 }
 
 function listFromMemory(shop) {
-  const shopKey = String(shop || "").toLowerCase();
+  const shopKey = normalizeShop(shop);
   const rows = [];
   for (const [key, row] of memoryStore.entries()) {
     if (key.startsWith(`${shopKey}::`) && row.status === "approved") {
@@ -83,25 +110,27 @@ function listFromMemory(shop) {
 
 /**
  * Find the best approved answer for a customer question.
- * @returns {{ match: object|null, score: number }}
+ * Shared by web, mobile site, and the native app.
  */
 export async function findTaughtAnswer({ shop, question, locale } = {}) {
+  const shopNorm = normalizeShop(shop);
   const questionNorm = normalizeQuestion(question);
-  if (!shop || !questionNorm) {
-    return Object.freeze({ match: null, score: 0 });
+  if (!shopNorm || !questionNorm) {
+    return Object.freeze({ match: null, score: 0, source: "none" });
   }
 
-  let rows = await listFromDb(shop);
-  if (!rows) {
-    rows = listFromMemory(shop);
-  } else {
-    // Merge memory overlays (newer local edits before migrate).
-    const mem = listFromMemory(shop);
+  let source = "memory";
+  let rows = await listFromDb(shopNorm);
+  if (rows) {
+    source = "database";
+    const mem = listFromMemory(shopNorm);
     const byNorm = new Map(rows.map((r) => [r.questionNorm, r]));
     for (const m of mem) {
       byNorm.set(m.questionNorm, m);
     }
     rows = [...byNorm.values()];
+  } else {
+    rows = listFromMemory(shopNorm);
   }
 
   let best = null;
@@ -110,10 +139,9 @@ export async function findTaughtAnswer({ shop, question, locale } = {}) {
 
   for (const row of rows) {
     const rowLocale = String(row.locale || "ar").toLowerCase().slice(0, 2);
-    // Prefer same locale; allow cross-locale only if score is exact.
-    let score = scoreMatch(questionNorm, row.questionNorm);
+    let score = scoreMatch(questionNorm, row.questionNorm || normalizeQuestion(row.question));
     if (rowLocale !== localePrefix) {
-      score *= 0.85;
+      score *= 0.9;
     }
     if (score > bestScore) {
       bestScore = score;
@@ -121,19 +149,24 @@ export async function findTaughtAnswer({ shop, question, locale } = {}) {
     }
   }
 
-  // Require a solid match so we don't force wrong taught answers.
-  if (bestScore < 0.72) {
-    return Object.freeze({ match: null, score: bestScore });
+  // Solid match required so we don't force wrong taught answers.
+  if (bestScore < 0.65) {
+    return Object.freeze({ match: null, score: bestScore, source, total: rows.length });
   }
 
-  return Object.freeze({ match: toPublic(best), score: bestScore });
+  return Object.freeze({
+    match: toPublic(best),
+    score: bestScore,
+    source,
+    total: rows.length,
+  });
 }
 
 /**
  * Approve / create / correct a taught answer (upsert by normalized question).
  */
 export async function upsertTaughtAnswer(input = {}) {
-  const shop = String(input.shop || "").trim();
+  const shop = normalizeShop(input.shop);
   const question = String(input.question || "").trim();
   const answer = String(input.answer || "").trim();
   const locale = String(input.locale || "ar").trim() || "ar";
@@ -154,40 +187,77 @@ export async function upsertTaughtAnswer(input = {}) {
     sourceMessageId: input.sourceMessageId || null,
   };
 
-  try {
-    const row = await prisma.assistantTaughtAnswer.upsert({
-      where: {
-        shop_questionNorm: { shop, questionNorm },
-      },
-      create: payload,
-      update: {
-        question,
-        answer,
-        locale,
-        status: "approved",
-        conversationId: payload.conversationId,
-        sourceMessageId: payload.sourceMessageId,
-      },
-    });
-    memoryStore.set(memoryKey(shop, questionNorm), row);
-    return Object.freeze({ ok: true, answer: toPublic(row), persisted: true });
-  } catch {
-    const id = `taught_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-    const now = new Date().toISOString();
-    const row = {
-      id,
-      ...payload,
-      createdAt: now,
-      updatedAt: now,
-    };
-    memoryStore.set(memoryKey(shop, questionNorm), row);
+  if (dbReady()) {
+    try {
+      const row = await prisma.assistantTaughtAnswer.upsert({
+        where: {
+          shop_questionNorm: { shop, questionNorm },
+        },
+        create: payload,
+        update: {
+          question,
+          answer,
+          locale,
+          status: "approved",
+          conversationId: payload.conversationId,
+          sourceMessageId: payload.sourceMessageId,
+        },
+      });
+      memoryStore.set(memoryKey(shop, questionNorm), row);
+      logAssistant("taught.upsert_persisted", {
+        shop,
+        questionNorm,
+        id: row.id,
+      });
+      return Object.freeze({ ok: true, answer: toPublic(row), persisted: true });
+    } catch (error) {
+      logAssistantError("taught.upsert_db_failed", error, {
+        shop,
+        questionNorm,
+      });
+    }
+  } else {
+    logAssistantError(
+      "taught.db_model_missing",
+      new Error("assistantTaughtAnswer model unavailable — run prisma migrate deploy"),
+      { shop },
+    );
+  }
+
+  const id = `taught_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  const now = new Date().toISOString();
+  const row = {
+    id,
+    ...payload,
+    createdAt: now,
+    updatedAt: now,
+  };
+  memoryStore.set(memoryKey(shop, questionNorm), row);
+  return Object.freeze({
+    ok: true,
+    answer: toPublic(row),
+    persisted: false,
+    note: "Stored in memory only — not shared across devices until DB migrate succeeds.",
+  });
+}
+
+export async function countTaughtAnswers(shop) {
+  const shopNorm = normalizeShop(shop);
+  const fromDb = await listFromDb(shopNorm);
+  if (fromDb) {
     return Object.freeze({
       ok: true,
-      answer: toPublic(row),
-      persisted: false,
-      note: "Stored in memory (DB unavailable). Run prisma migrate to persist.",
+      count: fromDb.length,
+      source: "database",
+      persisted: true,
     });
   }
+  return Object.freeze({
+    ok: true,
+    count: listFromMemory(shopNorm).length,
+    source: "memory",
+    persisted: false,
+  });
 }
 
 /**
@@ -204,7 +274,6 @@ export function verifyTrainKey(provided) {
   const got = String(provided || "").trim();
   if (!got) return false;
   if (got === expected) return true;
-  // Dev convenience: allow train=1 locally regardless of the configured key.
   if (process.env.NODE_ENV !== "production") {
     return got === "1" || got === "true" || got === "train";
   }

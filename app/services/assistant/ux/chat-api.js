@@ -483,7 +483,11 @@ export async function sendChatMessage(input = {}) {
         });
 
         const confirmContent = saved.ok
-          ? trainerConfirmation(command.kind, { question, answer }, locale)
+          ? trainerConfirmation(
+              command.kind,
+              { question, answer, persisted: saved.persisted },
+              locale,
+            )
           : locale.toLowerCase().startsWith("en")
             ? "Could not save that — please try again."
             : "تعذّر الحفظ — حاول مرة أخرى.";
@@ -535,9 +539,9 @@ export async function sendChatMessage(input = {}) {
     }
 
     // Prefer human-taught answers for free-text questions (not menu/photo flows).
-    // Skip the taught-answer shortcut for the trainer so they can test/retrain.
+    // Works for web, mobile site, and the app — same server DB.
+    // Trainers also get taught answers when asking normal questions (so they can verify).
     const canUseTaught =
-      !trainerMode &&
       !payload.actionId &&
       !payload.image &&
       !input.escalate &&

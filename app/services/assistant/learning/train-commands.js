@@ -99,27 +99,47 @@ export function parseTrainerCommand(rawMessage = "") {
   return null;
 }
 
-export function trainerConfirmation(kind, { answer, question } = {}, locale = "ar") {
+export function trainerConfirmation(
+  kind,
+  { answer, question, persisted } = {},
+  locale = "ar",
+) {
   const useEn = String(locale || "ar").toLowerCase().startsWith("en");
+  const persistNote =
+    persisted === false
+      ? useEn
+        ? "\n\n⚠️ Warning: saved temporarily only — not shared to mobile yet. Database migrate needed."
+        : "\n\n⚠️ تنبيه: الحفظ مؤقت حالياً — ما رح يوصل للموبايل لحد ما تشتغل قاعدة البيانات."
+      : useEn
+        ? "\n\nSaved on the server — available on web, phone, and the app."
+        : "\n\nمحفوظ على السيرفر — متاح على الموقع والموبايل والتطبيق.";
+
   if (kind === "stop") {
     return useEn
       ? "Training paused. Everything you taught is saved. When you come back here, training will resume automatically."
       : "تم إيقاف التدريب مؤقتاً. كل ما علّمتني محفوظ. لما ترجع تفتح المساعد من هون، التدريب يكمل تلقائياً.";
   }
   if (kind === "approve") {
-    return useEn
-      ? "Saved — I'll always use this answer for that question."
-      : "تم الحفظ — رح أستخدم هذا الجواب دائماً لهذا السؤال.";
+    return (
+      (useEn
+        ? "Saved — I'll always use this answer for that question."
+        : "تم الحفظ — رح أستخدم هذا الجواب دائماً لهذا السؤال.") + persistNote
+    );
   }
   if (kind === "teach") {
-    return useEn
-      ? `Got it. When asked «${question}», I'll answer:\n${answer}`
-      : `تمام. لما يسألني أحد «${question}»، رح أجاوب:\n${answer}`;
+    return (
+      (useEn
+        ? `Got it. When asked «${question}», I'll answer:\n${answer}`
+        : `تمام. لما يسألني أحد «${question}»، رح أجاوب:\n${answer}`) +
+      persistNote
+    );
   }
   // correct
-  return useEn
-    ? `Updated. The answer is now:\n${answer}`
-    : `تم التعديل. صار الجواب:\n${answer}`;
+  return (
+    (useEn
+      ? `Updated. The answer is now:\n${answer}`
+      : `تم التعديل. صار الجواب:\n${answer}`) + persistNote
+  );
 }
 
 export function trainerNeedsContext(locale = "ar") {
