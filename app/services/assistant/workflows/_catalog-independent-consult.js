@@ -16,7 +16,7 @@ import {
 
 /** Lighting / product signals that mean “search or consult”, not small talk. */
 const SEARCHABLE_HINT =
-  /chandelier|ثريا|ثرية|fan|مروحة|pendant|bulb|bulbs|بلب|بلبات|لمبة|لمبات|lamp|light|lighting|إضاءة|إنارة|انارة|outdoor|خارج|sconce|wall\s*light|ceiling|ابجور|أبجور|ستاند|spot|led|ليد|fixture|lampshade|نقطتين|نقطة إنارة/i;
+  /chandelier|ثريا|ثرية|نجفة|fan|مروحة|pendant|bulb|bulbs|بلب|بلبات|لمبة|لمبات|lamp|light|lighting|إضاءة|إنارة|انارة|outdoor|خارج|sconce|wall\s*light|ceiling|ابجور|أبجور|ستاند|spot|سبوت|led|ليد|fixture|lampshade|نقطتين|نقطة إنارة|تراك|track|بروفايل|profile|مغناطيس|magnetic|كشاف|ديكور\s*إضاءة/i;
 
 const TOPIC_LABEL = Object.freeze({
   chandelier: Object.freeze({ en: "chandeliers", ar: "الثريات" }),

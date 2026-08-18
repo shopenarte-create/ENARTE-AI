@@ -290,7 +290,18 @@ function isActiveProduct(node) {
 }
 
 function buildProductUrl(shop, handle, onlineStoreUrl) {
+  if (handle) {
+    return `https://enarteshop.com/products/${handle}`;
+  }
   if (onlineStoreUrl) {
+    try {
+      const parsed = new URL(onlineStoreUrl);
+      if (parsed.pathname.includes("/products/")) {
+        return `https://enarteshop.com${parsed.pathname}${parsed.search}`;
+      }
+    } catch {
+      // fall through
+    }
     return onlineStoreUrl;
   }
   if (!shop || !handle) {

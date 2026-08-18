@@ -3,6 +3,8 @@
  * Cards are built only from ENARTE Shopify catalog data.
  */
 
+import { toEnarteStoreUrl } from "../core/domain-scope.js";
+
 /**
  * @typedef {object} ProductCard
  * @property {string} id
@@ -44,7 +46,7 @@ export function toProductCard(product, extra = {}) {
     price: product.price != null ? String(product.price) : null,
     currency: product.currency || "JOD",
     availability,
-    url: product.url || "",
+    url: toEnarteStoreUrl(product.url, product.handle) || product.url || "",
     collection: product.collection || null,
     tags: Object.freeze([
       ...(Array.isArray(product.tags) ? product.tags : []),

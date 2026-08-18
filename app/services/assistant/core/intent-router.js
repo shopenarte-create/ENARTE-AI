@@ -21,6 +21,7 @@ import {
   loadIntentCatalog,
   resolveReplyTemplate,
 } from "../config/intent-catalog.js";
+import { isLightingStoreTopic, isOffStoreTopic } from "./domain-scope.js";
 
 function normalizeText(text) {
   return String(text || "")
@@ -50,6 +51,9 @@ function scorePatterns(text, patterns) {
 export function matchesOutOfDomainMessage(message, catalog = null) {
   const text = normalizeText(message);
   if (!text) return false;
+  if (isOffStoreTopic(text)) return true;
+  if (isLightingStoreTopic(text)) return false;
+
   const loaded = catalog || loadIntentCatalog();
   const settings = loaded.settings || INTENT_ROUTER_SETTINGS;
   const patterns = loaded.outOfDomainPatterns || OUT_OF_DOMAIN_PATTERNS;

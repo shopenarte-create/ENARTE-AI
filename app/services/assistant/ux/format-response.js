@@ -17,6 +17,7 @@ import {
   getServiceOffering,
 } from "../knowledge/readers/services.js";
 import { pickLocale } from "../utils/locale.js";
+import { filterEnarteCatalogCards } from "../core/domain-scope.js";
 
 async function servicesTextForWorkflow(workflowId, locale = "ar") {
   try {
@@ -188,7 +189,7 @@ export async function formatTurnForChat(turn, locale = "ar") {
       Number.isFinite(budgetMax) && budgetMax >= 20
         ? budgetMax * (budgetMode === "approx" ? 1.12 : 1.02)
         : null;
-    let cards = leaf.data?.cards || [];
+    let cards = filterEnarteCatalogCards(leaf.data?.cards || []);
     if (ceiling != null) {
       cards = cards.filter((card) => {
         const price = Number.parseFloat(String(card.price || ""));

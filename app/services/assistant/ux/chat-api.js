@@ -38,6 +38,7 @@ import {
   trainerConfirmation,
   trainerNeedsContext,
 } from "../learning/train-commands.js";
+import { isOffStoreTopic } from "../core/domain-scope.js";
 
 /** @type {Map<string, object>} */
 const sessions = new Map();
@@ -545,7 +546,8 @@ export async function sendChatMessage(input = {}) {
       !payload.actionId &&
       !payload.image &&
       !input.escalate &&
-      Boolean(String(userContent || "").trim());
+      Boolean(String(userContent || "").trim()) &&
+      !isOffStoreTopic(userContent);
 
     if (canUseTaught) {
       const taught = await findTaughtAnswer({

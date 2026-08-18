@@ -21,6 +21,7 @@ import {
 import { readMemory } from "../../core/memory.js";
 import { getConversationState } from "../../brain/state.js";
 import { getAssistantConfig } from "../../config/index.js";
+import { filterEnarteCatalogCards } from "../../core/domain-scope.js";
 
 function hasApiKey() {
   return Boolean(String(process.env.OPENAI_API_KEY || "").trim());
@@ -199,7 +200,7 @@ export function createOpenAiProvider(options = {}) {
           providerId: AI_PROVIDER_ID.OPENAI,
           data: Object.freeze({
             message: result.message,
-            cards: result.cards,
+            cards: filterEnarteCatalogCards(result.cards),
             actions: result.actions,
             toolCalls: result.toolCalls,
             model: result.model,

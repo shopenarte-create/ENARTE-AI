@@ -448,6 +448,21 @@ export const OUT_OF_DOMAIN_PATTERNS = Object.freeze([
   "اكتب لي قصة",
   "قصيدة",
   "شعر",
+  "amazon",
+  "أمازون",
+  "امازون",
+  "ikea",
+  "ايكيا",
+  "aliexpress",
+  "علي اكسبرس",
+  "سيارة",
+  "آيفون",
+  "ايفون",
+  "لابتوب",
+  "موبايل",
+  "كنبة",
+  "ملابس",
+  "ثلاجة",
 ]);
 
 /**
@@ -456,8 +471,8 @@ export const OUT_OF_DOMAIN_PATTERNS = Object.freeze([
  */
 export const ENGINE_REPLY_TEMPLATES = Object.freeze({
   out_of_domain: Object.freeze({
-    ar: "لا أستطيع التحدث خارج سياق المتجر. هل تريد المساعدة في اختيار إنارة معينة أو شيء آخر من اختصاصي؟",
-    en: "I cannot talk outside this store's context. Would you like help choosing specific lighting or something else in my specialty?",
+    ar: "لا أستطيع التحدث خارج سياق المتجر. أنا مستشار إنارة ENARTE على enarteshop.com فقط. هل تريد المساعدة في اختيار ثريا أو إنارة من الموقع؟",
+    en: "I cannot talk outside this store's context. I'm ENARTE's lighting consultant for enarteshop.com only. Would you like help choosing a chandelier or other lighting from the site?",
   }),
   clarify: Object.freeze({
     ar: "للتأكد أنني أساعدك بشكل صحيح: ماذا تبحث عنه في إضاءة ENARTE؟",

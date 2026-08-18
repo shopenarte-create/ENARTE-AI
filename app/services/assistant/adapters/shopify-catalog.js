@@ -13,6 +13,7 @@ import {
   SEARCH_CONFIG,
 } from "../catalog/search-rank.js";
 import { toProductCards } from "../catalog/product-card.js";
+import { filterEnarteCatalogCards } from "../core/domain-scope.js";
 
 const CATALOG_CACHE_TTL_MS = 180_000;
 /** Keep brief so a brief Admin blip does not block catalog for long. */
@@ -166,15 +167,17 @@ export function createShopifyCatalogAdapter({ loadCatalog } = {}) {
         },
       );
 
-      const cards = toProductCards(
-        ranked.results.map((row) => row.product),
-        (product, index) => ({
-          score: ranked.results[index].score,
-          matchType: ranked.results[index].matchType,
-          rank: ranked.results[index].rank || index + 1,
-          matchReason: ranked.results[index].matchReason || null,
-          availability: "available",
-        }),
+      const cards = filterEnarteCatalogCards(
+        toProductCards(
+          ranked.results.map((row) => row.product),
+          (product, index) => ({
+            score: ranked.results[index].score,
+            matchType: ranked.results[index].matchType,
+            rank: ranked.results[index].rank || index + 1,
+            matchReason: ranked.results[index].matchReason || null,
+            availability: "available",
+          }),
+        ),
       );
 
       return Object.freeze({

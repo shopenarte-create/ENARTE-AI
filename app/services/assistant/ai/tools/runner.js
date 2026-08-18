@@ -15,6 +15,7 @@ import { ASSISTANT_TOOL_NAMES } from "./definitions.js";
 import { mergeConversationSlots } from "../../workflows/_catalog-independent-consult.js";
 import { isProductWithinBudget } from "../../catalog/budget-constraint.js";
 import { findTaughtAnswer } from "../../learning/taught-answers.js";
+import { filterEnarteCatalogCards, isOffStoreTopic } from "../../core/domain-scope.js";
 
 const ALLOWED_WORKFLOWS = new Set([
   "general_chat",
@@ -108,6 +109,13 @@ export async function runAssistantTool(name, args = {}, ctx = {}, options = {}) 
 
     case ASSISTANT_TOOL_NAMES.LOOKUP_TAUGHT_ANSWER: {
       const question = String(args.question || options.fallbackMessage || "").trim();
+      if (isOffStoreTopic(question)) {
+        return Object.freeze({
+          ok: false,
+          found: false,
+          offStoreTopic: true,
+        });
+      }
       const taught = await findTaughtAnswer({
         shop: ctx?.shop || null,
         question,
@@ -162,7 +170,7 @@ export async function runAssistantTool(name, args = {}, ctx = {}, options = {}) 
           }
         : null;
       const cards = result?.cards
-        ? Object.freeze(
+        ? filterEnarteCatalogCards(
             result.cards
               .filter((card) =>
                 isProductWithinBudget(
@@ -185,6 +193,7 @@ export async function runAssistantTool(name, args = {}, ctx = {}, options = {}) 
                   matchType: card.matchType || null,
                   matchReason: card.matchReason || null,
                   image: card.image || null,
+                  handle: card.handle || null,
                 }),
               ),
           )
@@ -226,7 +235,9 @@ export async function runAssistantTool(name, args = {}, ctx = {}, options = {}) 
       return Object.freeze({
         ok: Boolean(result?.ok),
         count: result?.count ?? (result?.cards?.length || 0),
-        cards: result?.cards ? Object.freeze([...result.cards]) : null,
+        cards: result?.cards
+          ? filterEnarteCatalogCards(result.cards)
+          : null,
         shop: result?.shop || ctx?.shop || null,
         note: result?.note || null,
       });

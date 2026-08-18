@@ -58,7 +58,7 @@ export const ASSISTANT_RESPONSES_TOOLS = Object.freeze([
     type: "function",
     name: ASSISTANT_TOOL_NAMES.SEARCH_CATALOG,
     description:
-      "REQUIRED for any product, lighting, chandelier, style, color, material, room, or recommendation question. Search the live ENARTE Shopify catalog and return real product cards. Never invent products or answer product questions with generic text alone.",
+      "REQUIRED for any product, lighting, chandelier, fan, LED, style, color, material, room, or recommendation question. Search ONLY the live ENARTE catalog on enarteshop.com and return real product cards. Never invent products, never mention other websites/brands, and never answer product questions with generic text alone. If cards return, the customer must see them.",
     parameters: {
       type: "object",
       properties: {

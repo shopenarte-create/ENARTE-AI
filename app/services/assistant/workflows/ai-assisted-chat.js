@@ -14,6 +14,7 @@ import { AI_CAPABILITY_KIND } from "../ai/constants.js";
 import { getConversationState, setConversationState } from "../brain/state.js";
 import { readMemory } from "../core/memory.js";
 import { mergeConversationSlots } from "../workflows/_catalog-independent-consult.js";
+import { filterEnarteCatalogCards } from "../core/domain-scope.js";
 
 async function runDeterministicFallback(ctx, input) {
   const { default: generalChat } = await import("./general-chat.js");
@@ -121,7 +122,7 @@ export default Object.freeze({
     }
 
     const message = ai.data?.message || "";
-    const cards = ai.data?.cards || null;
+    const cards = filterEnarteCatalogCards(ai.data?.cards || []);
     const actions = ai.data?.actions || null;
     const mergedSlots =
       ai.data?.describeSlots || describeSlots;
@@ -163,7 +164,7 @@ export default Object.freeze({
       action: cards?.length ? "products_found" : "reply",
       message,
       data: Object.freeze({
-        cards: cards ? Object.freeze([...cards]) : null,
+        cards: cards.length ? Object.freeze([...cards]) : null,
         actions: actions ? Object.freeze([...actions]) : null,
         ai: true,
         toolCalls: ai.data?.toolCalls || null,
